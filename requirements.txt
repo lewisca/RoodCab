@@ -1,0 +1,5 @@
+# Core runs on the Python standard library (3.9+). Optional extras:
+anthropic>=0.40.0     # USE_CLAUDE=true  -> personalized messages (agent/brain.py)
+requests>=2.31.0      # monitoring vendor API (agent/eyes.py)
+# twilio>=9.0.0       # SMS sender (agent/hand.py) - needs 10DLC/A2P registration
+# sendgrid>=6.11.0    # email sender (agent/hand.py) - needs CAN-SPAM footer

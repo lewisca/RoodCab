@@ -1,0 +1,18 @@
+{
+  "name": "roodcab-connect-server",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Mints Zapier connect-links so a provider authorizes DisputeFox in one click. Node-only because the Zapier SDK is Node-only; it sits beside the Python agent, not inside it.",
+  "scripts": {
+    "start": "node server.js",
+    "login": "npx zapier-sdk login"
+  },
+  "engines": { "node": ">=18" },
+  "dependencies": {
+    "@zapier/zapier-sdk": "^1"
+  },
+  "devDependencies": {
+    "@zapier/zapier-sdk-cli": "^1"
+  }
+}

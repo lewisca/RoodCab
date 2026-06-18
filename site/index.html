@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Rood Cab — Backdoor revenue for credit-repair providers</title>
+<meta name="description" content="Rood Cab watches your clients' credit scores and, the moment one graduates into a higher lending tier, sends a single compliant matched referral — turning credit-repair wins into commission revenue." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+<!-- ============ NAV ============ -->
+<header class="nav">
+  <div class="wrap nav-inner">
+    <a class="brand" href="#top">
+      <span class="brand-mark" aria-hidden="true">◵</span>
+      <span class="brand-name">Rood&nbsp;Cab</span>
+    </a>
+    <nav class="nav-links">
+      <a href="#what">What it does</a>
+      <a href="#how">How it works</a>
+      <a href="#compliance">Compliance</a>
+      <a class="btn btn-sm" href="#signup">Become a partner</a>
+    </nav>
+  </div>
+</header>
+
+<!-- ============ HERO ============ -->
+<section class="hero" id="top">
+  <div class="wrap hero-inner">
+    <div class="hero-copy reveal">
+      <p class="eyebrow">Backdoor revenue engine</p>
+      <h1>The revenue hiding in <span class="hl">every client you graduate.</span></h1>
+      <p class="lede">
+        Rood Cab watches each client's tri-bureau scores. The moment someone crosses
+        <em>upward</em> into a higher lending tier, it sends <strong>one</strong> matched,
+        compliance-checked financing referral — turning the credit-repair win you already
+        earned into commission revenue you're currently leaving on the table.
+      </p>
+      <div class="hero-cta">
+        <a class="btn btn-lg" href="#signup">Become a partner</a>
+        <a class="btn btn-ghost btn-lg" href="#how">See how it works</a>
+      </div>
+      <p class="hero-note">No credit-report data stored · One referral per tier · Dry-run safe</p>
+    </div>
+
+    <div class="hero-panel reveal" aria-hidden="true">
+      <div class="ticket">
+        <div class="ticket-row"><span>Client</span><b>#12345</b></div>
+        <div class="ticket-score">
+          <div class="bar"><i style="--w:62%"></i></div>
+          <div class="score-move"><span class="from">618</span><span class="arrow">→</span><span class="to">658</span></div>
+        </div>
+        <div class="ticket-row"><span>Mid-score band</span><b class="up">B1 → B2 ▲</b></div>
+        <div class="ticket-divider"></div>
+        <div class="ticket-row gate"><span>Verifier</span><b class="ok">6/6 gates passed</b></div>
+        <div class="ticket-row"><span>Action</span><b class="fire">Referral sent</b></div>
+        <div class="ticket-foot">subid · 12345:B2 · attributed</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ WHAT IT DOES ============ -->
+<section class="band" id="what">
+  <div class="wrap">
+    <h2 class="reveal">What Rood Cab does</h2>
+    <p class="section-lede reveal">
+      Your clients' scores climb — that's the whole point of the work you do. Rood Cab
+      monetizes the exact moment they cross into a tier where a new lending product fits,
+      and never bothers anyone who isn't ready.
+    </p>
+    <div class="cards">
+      <article class="card reveal">
+        <div class="card-ico">↗</div>
+        <h3>Recapture revenue at graduation</h3>
+        <p>The moment a client out-grows credit repair is usually the moment they churn.
+        Rood Cab catches the upward band crossing and earns a commission on the next step.</p>
+      </article>
+      <article class="card reveal">
+        <div class="card-ico">⚙</div>
+        <h3>Fully automated</h3>
+        <p>Score updates push in from your CRM (DisputeFox via Zapier). No dashboards to
+        babysit, no lists to pull. One event in, one decision out.</p>
+      </article>
+      <article class="card reveal">
+        <div class="card-ico">🛡</div>
+        <h3>Compliance-first by design</h3>
+        <p>A second "verifier" agent gates every send — eligibility, consent, freshness,
+        and an independent re-check — before anything irreversible fires.</p>
+      </article>
+      <article class="card reveal">
+        <div class="card-ico">①</div>
+        <h3>One referral per tier, ever</h3>
+        <p>Idempotent by design: a client gets a single matched offer per band they reach.
+        No spam, no double-sends, no eroding the trust you built.</p>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- ============ HOW IT WORKS ============ -->
+<section class="band alt" id="how">
+  <div class="wrap">
+    <h2 class="reveal">How it works</h2>
+    <p class="section-lede reveal">
+      A loop with a verifier. The brain proposes a referral; a second pass confirms it's
+      real, fresh, non-duplicate, eligible, and compliant before the hand ever moves.
+    </p>
+
+    <ol class="steps">
+      <li class="step reveal">
+        <span class="step-n">1</span>
+        <div><h3>Connect</h3><p>Your CRM sends a "client updated" event through Zapier to a
+        secure webhook. Transport only — it carries scores, never detects crossings.</p></div>
+      </li>
+      <li class="step reveal">
+        <span class="step-n">2</span>
+        <div><h3>Detect</h3><p>Rood Cab takes the <strong>median</strong> of the three bureau
+        scores and checks it against the client's last reading to spot an upward band crossing.</p></div>
+      </li>
+      <li class="step reveal">
+        <span class="step-n">3</span>
+        <div><h3>Verify</h3><p>A second agent runs six gates — score sanity, real crossing,
+        idempotency, eligibility, consent, and an independent re-derivation. Any doubt → quarantine.</p></div>
+      </li>
+      <li class="step reveal">
+        <span class="step-n">4</span>
+        <div><h3>Refer</h3><p>One matched offer for that tier goes out with a tracked link.
+        A multi-tier jump routes to the highest band reached — still just one referral.</p></div>
+      </li>
+      <li class="step reveal">
+        <span class="step-n">5</span>
+        <div><h3>Earn</h3><p>You collect commission on conversion. Every event is logged with a
+        unique sub-id so payouts reconcile — and no client PII is ever stored.</p></div>
+      </li>
+    </ol>
+
+    <div class="pipeline reveal" aria-label="Pipeline: Eyes, Brain, Verifier, Hand, Memory">
+      <span class="pipe">Eyes</span><span class="sep">→</span>
+      <span class="pipe">Brain</span><span class="sep">→</span>
+      <span class="pipe pipe-key">Verifier</span><span class="sep">→</span>
+      <span class="pipe">Hand</span>
+      <span class="pipe pipe-mem">Memory</span>
+    </div>
+    <p class="pipeline-cap reveal">The verifier is the load-bearing half — it's what makes the loop safe to leave running.</p>
+
+    <!-- band ladder -->
+    <div class="ladder reveal" aria-label="Lending bands by mid-score">
+      <div class="rung"><b>B0</b><span>&lt;580</span><small>keep repairing</small></div>
+      <div class="rung"><b>B1</b><span>580–619</span><small>credit-builder</small></div>
+      <div class="rung"><b>B2</b><span>620–659</span><small>subprime auto</small></div>
+      <div class="rung"><b>B3</b><span>660–699</span><small>personal loan</small></div>
+      <div class="rung"><b>B4</b><span>700–739</span><small>premium card</small></div>
+      <div class="rung hot"><b>B5</b><span>740+</span><small>mortgage*</small></div>
+    </div>
+    <p class="ladder-note reveal">*Mortgage tier routed via a licensed partner / marketing-fee structure (RESPA).</p>
+  </div>
+</section>
+
+<!-- ============ COMPLIANCE ============ -->
+<section class="band" id="compliance">
+  <div class="wrap">
+    <h2 class="reveal">Compliance is the product</h2>
+    <p class="section-lede reveal">
+      A wrongful offer can cost far more than a missed one. Rood Cab is built so the safe
+      choice is the default — when anything is uncertain, it quarantines for human review
+      instead of sending.
+    </p>
+    <div class="compliance-grid">
+      <div class="cpill reveal"><b>FCRA</b><p>Never pulls or stores credit-report line items, tradelines, or dispute data. Scores, contact, and consent only.</p></div>
+      <div class="cpill reveal"><b>TCPA</b><p>Consent to lending-offer referrals lives in your client agreement — documented and auditable, never inferred.</p></div>
+      <div class="cpill reveal"><b>RESPA</b><p>The mortgage tier is routed through a licensed partner or bona-fide marketing fee — never a per-referral kickback.</p></div>
+      <div class="cpill reveal"><b>CROA</b><p>Message copy makes no credit-outcome promises or guarantees. Plain, honest nudges only.</p></div>
+      <div class="cpill reveal"><b>No PII at rest</b><p>Memory keeps client IDs, scores, bands, and attribution keys — no names, emails, phones, SSNs, or addresses.</p></div>
+      <div class="cpill reveal"><b>Idempotent</b><p>One referral per client per band, ever. Replays and duplicate webhooks resolve to no-action, not noise.</p></div>
+    </div>
+    <p class="legal-mini reveal">Not legal advice — confirm your structure with counsel before launch.</p>
+  </div>
+</section>
+
+<!-- ============ SIGNUP ============ -->
+<section class="band alt" id="signup">
+  <div class="wrap signup-wrap">
+    <div class="signup-copy reveal">
+      <h2>Become a partner</h2>
+      <p>Tell us about your book and how you capture scores. We'll show you the backdoor
+      revenue already sitting in your client base — and what it takes to turn it on.</p>
+      <ul class="signup-points">
+        <li>Dry-run first — see the referrals it <em>would</em> send before anything goes live.</li>
+        <li>Works with DisputeFox today; other CRMs on request.</li>
+        <li>You keep the client relationship. We just catch the moment they're ready.</li>
+      </ul>
+    </div>
+
+    <div class="signup-right reveal">
+    <form class="signup-form" id="signup-form" novalidate>
+      <div class="field">
+        <label for="company">Company name</label>
+        <input id="company" name="company" type="text" autocomplete="organization" required />
+      </div>
+      <div class="row">
+        <div class="field">
+          <label for="contact">Your name</label>
+          <input id="contact" name="contact" type="text" autocomplete="name" required />
+        </div>
+        <div class="field">
+          <label for="email">Work email</label>
+          <input id="email" name="email" type="email" autocomplete="email" required />
+        </div>
+      </div>
+      <div class="row">
+        <div class="field">
+          <label for="phone">Phone <span class="opt">(optional)</span></label>
+          <input id="phone" name="phone" type="tel" autocomplete="tel" />
+        </div>
+        <div class="field">
+          <label for="crm">Score source / CRM</label>
+          <select id="crm" name="crm" required>
+            <option value="" selected disabled>Select…</option>
+            <option>DisputeFox</option>
+            <option>Credit Repair Cloud</option>
+            <option>Other / not sure</option>
+          </select>
+        </div>
+      </div>
+      <div class="field">
+        <label for="clients">Active clients</label>
+        <select id="clients" name="clients" required>
+          <option value="" selected disabled>Select a range…</option>
+          <option>Under 100</option>
+          <option>100–500</option>
+          <option>500–2,000</option>
+          <option>2,000+</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="notes">Anything else? <span class="opt">(optional)</span></label>
+        <textarea id="notes" name="notes" rows="3"></textarea>
+      </div>
+      <label class="check">
+        <input id="consent" name="consent" type="checkbox" required />
+        <span>I confirm consent to lending-offer referrals is (or will be) captured in our client agreement.</span>
+      </label>
+
+      <button class="btn btn-lg btn-block" type="submit">Request access</button>
+      <p class="form-fineprint">We'll only use this to get in touch about Rood Cab.</p>
+    </form>
+
+    <!-- verifying state -->
+    <div class="onboard-verify" id="onboard-verify" hidden>
+      <span class="spinner" aria-hidden="true"></span>
+      <p>Verifying your details…</p>
+    </div>
+
+    <!-- onboarding -->
+    <div class="onboard" id="onboard" hidden>
+      <div class="onboard-head">
+        <span class="verified">✓ Verified</span>
+        <h3>Connect your data to go live</h3>
+        <p>Authorize your CRM through Zapier and Rood Cab starts listening for Client Update
+        events — one click, no Zap to build, no secrets to copy.</p>
+      </div>
+
+      <!-- PRIMARY: Zapier SDK connect-link -->
+      <div id="connect-primary">
+        <div class="connect-card">
+          <span class="pill-rec">Recommended</span>
+          <div class="connect-flow"><span>DisputeFox</span><i>→</i><b>Zapier</b><i>→</i><span>Rood&nbsp;Cab</span></div>
+          <button class="btn btn-lg btn-block" id="connect-zapier" type="button">Connect with Zapier</button>
+          <ul class="connect-points">
+            <li>Authorize DisputeFox once in a Zapier-hosted window.</li>
+            <li>We subscribe to the <b>“Client Update”</b> event for you.</li>
+            <li>Zapier manages tokens, refresh &amp; retries. Nothing to paste.</li>
+          </ul>
+        </div>
+        <button class="linkish" id="show-manual" type="button">Not on Zapier, or prefer manual webhook setup?</button>
+      </div>
+
+      <!-- connecting state -->
+      <div class="connect-working" id="connect-working" hidden>
+        <span class="spinner" aria-hidden="true"></span>
+        <p>Opening Zapier… authorize DisputeFox in the popup, then come back here.</p>
+      </div>
+
+      <!-- FALLBACK: manual webhook (the original two steps) -->
+      <div class="manual" id="manual" hidden>
+        <div class="manual-head">
+          <h4>Manual webhook setup</h4>
+          <button class="linkish" id="hide-manual" type="button">← One-click connect</button>
+        </div>
+        <ol class="stepper" aria-hidden="true">
+          <li class="dot active" data-dot="1"><span>1</span><small>Zapier trigger</small></li>
+          <li class="dot" data-dot="2"><span>2</span><small>Connect Rood Cab</small></li>
+        </ol>
+
+        <!-- STEP 1 -->
+        <div class="ostep" id="ostep-1">
+          <h5>Step 1 · Connect DisputeFox / your CRM to Zapier</h5>
+          <ol class="ostep-list">
+            <li>In Zapier, click <b>Create&nbsp;→&nbsp;Zap</b>.</li>
+            <li>For the <b>Trigger app</b>, choose <b>DisputeFox</b> (or your CRM).</li>
+            <li>Set the trigger event to the <b>“Client Update”</b> Zap.</li>
+            <li>Connect your DisputeFox account, then <b>Test trigger</b> so Zapier pulls a sample client.</li>
+          </ol>
+          <button class="btn btn-block" id="step1-next" type="button">I've set up the Client Update trigger →</button>
+        </div>
+
+        <!-- STEP 2 -->
+        <div class="ostep" id="ostep-2" hidden>
+          <h5>Step 2 · Connect Zapier to Rood Cab</h5>
+          <p class="ostep-intro">In that same Zap, add a <b>“Webhooks by Zapier → POST”</b> action and paste in your unique endpoint and secret:</p>
+
+          <div class="cred">
+            <span class="cred-label">Your Rood Cab webhook URL</span>
+            <div class="copyrow">
+              <input id="hookUrl" readonly />
+              <button class="btn btn-ghost btn-sm" type="button" data-copy="hookUrl">Copy</button>
+            </div>
+          </div>
+          <div class="cred">
+            <span class="cred-label">Signing secret · header <code>X-RoodCab-Secret</code></span>
+            <div class="copyrow">
+              <input id="hookSecret" readonly />
+              <button class="btn btn-ghost btn-sm" type="button" data-copy="hookSecret">Copy</button>
+            </div>
+          </div>
+
+          <form id="zap-form" class="zap-form" novalidate>
+            <div class="field">
+              <label for="zapEmail">Zapier account email</label>
+              <input id="zapEmail" name="zapEmail" type="email" autocomplete="email" required />
+            </div>
+            <label class="check">
+              <input id="zapConfirm" type="checkbox" required />
+              <span>I've added the POST action with this URL + secret and turned the Zap on.</span>
+            </label>
+            <button class="btn btn-lg btn-block" type="submit">Complete connection</button>
+          </form>
+        </div>
+      </div>
+
+      <!-- STEP: lending offers (the monetization setup) -->
+      <div class="offers-step" id="offers-step" hidden>
+        <h4>Add your lending offers</h4>
+        <p class="ostep-intro">This is how you get paid. For each tier, paste <b>your</b> affiliate
+        link so conversions pay you directly. No link yet? Leave it blank — we'll use the Rood Cab
+        house link and still attribute the payout to you via <code>subid</code>, and you can apply
+        for your own anytime. The brain surfaces your <b>highest-priority</b> eligible offer per crossing.</p>
+        <div id="offers-list"></div>
+        <button class="btn btn-lg btn-block" id="offers-save" type="button">Save offers &amp; go live</button>
+      </div>
+
+      <!-- DONE (shared) -->
+      <div class="ostep onboard-done" id="ostep-done" hidden>
+        <div class="done-check" aria-hidden="true">✓</div>
+        <h4>You're live.</h4>
+        <p>Rood Cab is now listening for <b>Client Update</b> events and will surface your matched
+        offers on each upward crossing — in <b>dry-run</b> first, so you can watch exactly what it
+        would send before anything goes live. <span id="offers-count-note"></span></p>
+      </div>
+    </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ FOOTER ============ -->
+<footer class="footer">
+  <div class="wrap footer-inner">
+    <div>
+      <span class="brand-name">Rood Cab</span>
+      <p class="footer-tag">Backdoor revenue for credit-repair providers.</p>
+    </div>
+    <p class="footer-legal">
+      Rood Cab does not pull or store credit-report data and makes no credit-outcome
+      guarantees. Not legal advice. © <span id="year"></span> Rood Cab.
+    </p>
+  </div>
+</footer>
+
+<script src="app.js"></script>
+</body>
+</html>

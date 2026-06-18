@@ -1,0 +1,6 @@
+client_id,name,email,phone,equifax,experian,transunion,status,folder,updated_at
+C001,Maria Lopez,maria@example.com,+13055550101,638,640,642,Active Client,In Progress,2026-06-16T20:30:00Z
+C002,James Carter,james@example.com,+13055550102,650,652,648,Active Client,In Progress,2026-06-16T20:30:00Z
+C003,Aisha Khan,aisha@example.com,+13055550103,678,680,682,Active Client,In Progress,2026-06-16T20:30:00Z
+C004,Derek Hall,derek@example.com,+13055550104,758,760,762,Active Client,In Progress,2026-06-16T20:30:00Z
+C005,Sam Reed,sam@example.com,+13055550105,683,685,687,Paused,In Progress,2026-06-16T20:30:00Z

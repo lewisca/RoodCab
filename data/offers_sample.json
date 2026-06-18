@@ -1,0 +1,84 @@
+{
+  "provider_id": "sample-provider",
+  "_comment": "A provider's lending offers. Paste your own affiliate_link to get paid directly; until then house_link is used and still attributes to you via subid. apply_link is where you get your own affiliate id. Links may use a {subid} placeholder.",
+  "offers": [
+    {
+      "id": "creditbuilder-co",
+      "partner": "CreditBuilder Co",
+      "product": "a credit-builder card",
+      "bands": ["B1"],
+      "affiliate_link": null,
+      "house_link": "https://go.roodcab.io/creditbuilder-co?subid={subid}",
+      "apply_link": "https://creditbuilderco.com/affiliates",
+      "priority": 10,
+      "states": ["*"],
+      "enabled": true,
+      "compliance": "standard"
+    },
+    {
+      "id": "drivenow-auto",
+      "partner": "DriveNow Auto",
+      "product": "a subprime auto loan",
+      "bands": ["B2", "B3"],
+      "affiliate_link": "https://drivenow.com/apply?aff=PROVIDER123&subid={subid}",
+      "house_link": "https://go.roodcab.io/drivenow?subid={subid}",
+      "apply_link": "https://drivenow.com/partners",
+      "priority": 20,
+      "states": ["*"],
+      "enabled": true,
+      "compliance": "standard"
+    },
+    {
+      "id": "firstcard-unsecured",
+      "partner": "FirstCard",
+      "product": "your first unsecured card",
+      "bands": ["B2"],
+      "affiliate_link": null,
+      "house_link": "https://go.roodcab.io/firstcard?subid={subid}",
+      "apply_link": "https://firstcard.com/affiliate",
+      "priority": 10,
+      "states": ["*"],
+      "enabled": true,
+      "compliance": "standard"
+    },
+    {
+      "id": "lendfast-personal",
+      "partner": "LendFast",
+      "product": "a personal loan to consolidate",
+      "bands": ["B3", "B4"],
+      "affiliate_link": "https://lendfast.com/go?ref=PROVIDER123&subid={subid}",
+      "house_link": "https://go.roodcab.io/lendfast?subid={subid}",
+      "apply_link": "https://lendfast.com/partners",
+      "priority": 15,
+      "states": ["*"],
+      "enabled": true,
+      "compliance": "standard"
+    },
+    {
+      "id": "primecard-rewards",
+      "partner": "PrimeCard",
+      "product": "a premium rewards card",
+      "bands": ["B4", "B5"],
+      "affiliate_link": "https://primecard.com/apply?aff=PROVIDER123&subid={subid}",
+      "house_link": null,
+      "apply_link": "https://primecard.com/affiliates",
+      "priority": 10,
+      "states": ["*"],
+      "enabled": true,
+      "compliance": "standard"
+    },
+    {
+      "id": "homeloan-partners",
+      "partner": "HomeLoan Partners",
+      "product": "a mortgage pre-qualification",
+      "bands": ["B5"],
+      "affiliate_link": null,
+      "house_link": "https://go.roodcab.io/homeloan?subid={subid}",
+      "apply_link": "https://homeloanpartners.com/licensed-referral",
+      "priority": 20,
+      "states": ["*"],
+      "enabled": true,
+      "compliance": "respa"
+    }
+  ]
+}

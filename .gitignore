@@ -1,0 +1,26 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+
+# Agent runtime state (local, regenerated; may contain secrets) — never commit
+state.db
+data/state/
+data/offers/
+data/providers.json
+
+# Node (connect-server)
+node_modules/
+npm-debug.log*
+
+# Env / secrets
+.env
+.env.*
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
