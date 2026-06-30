@@ -14,7 +14,7 @@ import statistics
 from dataclasses import dataclass
 from typing import Optional
 
-from config import BANDS, ROUTING, CONSENT_LINE, USE_CLAUDE, CLAUDE_MODEL
+from config import BANDS, ROUTING, USE_CLAUDE, CLAUDE_MODEL
 
 
 @dataclass
@@ -108,7 +108,7 @@ def template_message(client, band, offer, link):
     first = client.name.split()[0] if client.name.strip() else "there"
     return (f"Hi {first}, your credit just moved into a new tier ({label}). "
             f"A strong next step could be {offer.product} with {offer.partner}. "
-            f"Here's a matched option to explore (soft check, no score impact): {link}\n{CONSENT_LINE}")
+            f"Here's a matched option to explore (soft check, no score impact): {link}")
 
 
 def claude_message(client, band, offer, link):
@@ -120,9 +120,9 @@ def claude_message(client, band, offer, link):
         f"Write one short SMS (max 320 chars) to {first}, a credit-repair "
         f"client whose score just improved into the {label} tier. Recommend exactly ONE "
         f"next step: {offer.product} with {offer.partner}. Include this URL verbatim: {link}. "
-        f"End with this exact sentence: {CONSENT_LINE} "
         f"Rules: warm and plain, no hype, no promises or guarantees about credit outcomes, "
-        f"FCRA/CROA-safe. Output only the message text."
+        f"FCRA/CROA-safe. This is the body of an email (a compliance footer with unsubscribe "
+        f"is added separately, so do not add one). Output only the message text."
     )
     resp = Anthropic().messages.create(
         model=CLAUDE_MODEL, max_tokens=300,

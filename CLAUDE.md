@@ -28,7 +28,8 @@ DisputeFox "client updated"  ──Zapier──▶  webhook.py
 - **Offers** — `agent/offers.py` — per-provider lending catalog (affiliate links + house fallback);
   the monetization layer the Brain selects from.
 - **Verifier** — `agent/verifier.py` — the load-bearing 2nd pass; gates 1–6 → verdict.
-- **Hand** — `agent/hand.py` — delivery. `ConsoleSender` (dry-run); Twilio/SendGrid stubs.
+- **Hand** — `agent/hand.py` — EMAIL delivery to the client's DisputeFox address (no SMS).
+  `ConsoleSender` (dry-run preview) + `SMTPEmailSender` (live); `build_sender()` picks by `DRY_RUN`.
 - **Memory** — `agent/memory.py` — SQLite; per-client mid-score history + referrals + quarantine log.
 - **Orchestrator** — `agent/orchestrator.py` — `process_event` (one event) + `run` (batch).
 - **Config** — `config.py` — bands, routing, eligibility, consent gate, links (via env).
@@ -108,9 +109,9 @@ RESPA: B5/mortgage offers are `compliance:"respa"` (licensed-partner/marketing-f
 - When uncertain, quarantine. A missed referral is recoverable; a wrongful one may not be.
 
 ## 10. Compliance constraints (keep intact in any change)
-- **TCPA / 10DLC**: SMS only from a registered A2P number; agreement consent must not be a
+- **CAN-SPAM**: delivery is email only (to the client's DisputeFox address) — every email needs a
+  working unsubscribe link + a valid physical postal address. Agreement consent must not be a
   coercive condition of the credit-repair service itself.
-- **CAN-SPAM**: email needs unsubscribe + physical address.
 - **FCRA**: the credit pull stays on the lender/aggregator side; this agent never pulls or
   stores credit-report line items, tradelines, or dispute data — scores + contact + consent only.
 - **RESPA**: the mortgage band (B5) cannot pay a per-referral fee — licensed partner or

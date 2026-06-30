@@ -20,7 +20,7 @@ import sys
 
 from config import DB_PATH, OFFERS_PATH
 from agent.eyes import DisputeFoxPayloadSource
-from agent.hand import ConsoleSender
+from agent.hand import build_sender
 from agent.memory import Memory
 from agent.orchestrator import process_event
 from agent.verifier import Verifier
@@ -34,7 +34,7 @@ def handle_payload(payload, memory=None, sender=None, verifier=None, offers=None
     fine for one-shot invocations.
     """
     memory = memory or Memory(DB_PATH)
-    sender = sender or ConsoleSender()
+    sender = sender or build_sender()
     verifier = verifier or Verifier()
     offers = offers if offers is not None else load_offers(OFFERS_PATH)
     (client,) = DisputeFoxPayloadSource(payload).fetch()

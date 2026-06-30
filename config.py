@@ -73,5 +73,26 @@ AGREEMENT_MARKER_FIELD = os.getenv("AGREEMENT_MARKER_FIELD", "").strip()
 # --- score sanity (Verifier gate 1) ------------------------------------------
 SCORE_MIN, SCORE_MAX = 300, 850
 
-CONSENT_LINE = ("You're getting this because lending-offer referrals are part of "
-                "your client agreement with us. Reply STOP to opt out.")
+# --- delivery: EMAIL ONLY ----------------------------------------------------
+# Referrals are emailed to the client's email already on file in DisputeFox
+# (ClientScore.email, in-flight only, never stored). No SMS.
+SENDER = os.getenv("SENDER", "smtp").strip().lower()   # real sender when DRY_RUN is false
+FROM_EMAIL = os.getenv("FROM_EMAIL", "offers@roodcab.example")
+FROM_NAME = os.getenv("FROM_NAME", "Rood Cab")
+EMAIL_SUBJECT = os.getenv("EMAIL_SUBJECT", "A financing option matched to your new credit tier")
+
+# CAN-SPAM: a commercial email needs a working opt-out AND a valid physical postal address.
+UNSUBSCRIBE_URL = os.getenv("UNSUBSCRIBE_URL", "https://roodcab.example/unsubscribe")
+PHYSICAL_ADDRESS = os.getenv("PHYSICAL_ADDRESS", "Rood Cab, 123 Example St, Suite 100, Miami, FL 33132")
+
+# SMTP relay — works with SendGrid / Amazon SES / Mailgun / Postmark / etc.
+SMTP_HOST = os.getenv("SMTP_HOST", "")
+SMTP_PORT = int(os.getenv("SMTP_PORT", "587"))
+SMTP_USER = os.getenv("SMTP_USER", "")
+SMTP_PASSWORD = os.getenv("SMTP_PASSWORD", "")
+SMTP_STARTTLS = os.getenv("SMTP_STARTTLS", "true").lower() == "true"
+
+# Appended to every email body (with the unsubscribe link + address) — channel-neutral
+# wording; the opt-out mechanism is added by the email footer, not baked into the pitch.
+CONSENT_LINE = ("You're receiving this email because lending-offer referrals are part of "
+                "your credit-repair client agreement with us.")

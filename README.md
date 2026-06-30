@@ -63,7 +63,7 @@ agent/eyes.py          score sources: DisputeFox webhook + CSV + monitoring API 
 agent/brain.py         mid-score (median), band logic, crossing detection, select_offer, message copy
 agent/offers.py        lending catalog: provider affiliate links + house fallback, eligibility
 agent/verifier.py      gates 1-6 -> SEND / NO_ACTION / QUARANTINE
-agent/hand.py          senders (console now; Twilio/SendGrid stubs)
+agent/hand.py          EMAIL delivery: ConsoleSender (preview) + SMTPEmailSender (live)
 agent/memory.py        SQLite: mid-score history, referrals (idempotency + attribution), quarantine log
 agent/orchestrator.py  process_event (one event) + run (batch/reconciliation)
 agent/providers.py     multi-tenant registry: per-provider id, webhook secret, isolated paths
@@ -71,7 +71,7 @@ run.py                 batch entrypoint;  webhook.py  single-event entrypoint
 server.py              multi-tenant HTTP API (stdlib): register / save offers / intake
 connect-server/        Node service (scaffold) that mints Zapier connect-links
 data/                  sample client CSVs (3-bureau) + offers_sample.json
-tests/                 brain / eyes / verifier / memory / offers / orchestrator / providers / server
+tests/                 brain / eyes / verifier / memory / offers / orchestrator / providers / server / hand
 ```
 
 ## How a score crosses a band
@@ -111,17 +111,20 @@ Zapier credentials; see its README) via `CONNECT_LINK_ENDPOINT`.
    in `_verify_auth` and mount `handle_payload` in your web framework before exposing it.
    For the pull alternative, finish `MonitoringAPIScoreSource` against the **real** vendor docs
    (the in-file contract is assumed/unverified) and run with `SCORE_SOURCE=api`.
-2. **Links** — set real tracked links:
-   ```bash
-   export LINK_B1="https://...credit-builder..."   LINK_B2="https://...subprime-auto..."
-   export LINK_B3="https://...personal-loan..."    LINK_B4="https://...premium-card..."
-   export LINK_B5="https://...mortgage-partner..."
-   ```
+2. **Offers** — add each provider's real affiliate links (or the Rood Cab house link) in their
+   offers catalog — by editing `data/offers_sample.json` / their `data/offers/<id>.json`, or via
+   the site's "Add your lending offers" step. See [Lending offers](#lending-offers-how-the-provider-gets-paid).
 3. **Eligibility / consent** — set `EXCLUDED_FOLDERS`; consent is assumed via the client
    agreement (`CONSENT_VIA_AGREEMENT=true`). To require per-client evidence, set
    `AGREEMENT_MARKER_FIELD` to the payload/CSV field that proves a signed agreement.
-4. **Sender** — implement `TwilioSMSSender` or `SendGridEmailSender`, swap it into `run.py`
-   /`webhook.py`, then `export DRY_RUN=false`.
+4. **Email** — referrals are emailed to the client's DisputeFox address. Configure an SMTP relay
+   (SendGrid / Amazon SES / Mailgun / Postmark, etc.) and a CAN-SPAM footer, then go live:
+   ```bash
+   export SMTP_HOST=... SMTP_USER=... SMTP_PASSWORD=... FROM_EMAIL="offers@yourdomain.com"
+   export UNSUBSCRIBE_URL="https://yourdomain.com/unsubscribe" PHYSICAL_ADDRESS="Your LLC, 123 Main St, City, ST 00000"
+   export DRY_RUN=false   # ConsoleSender (preview) -> SMTPEmailSender (real)
+   ```
+   Authenticate your sending domain (SPF/DKIM/DMARC) for deliverability.
 
 Optional personalized messages: `pip install anthropic`, set `ANTHROPIC_API_KEY`, `export USE_CLAUDE=true`.
 
@@ -130,10 +133,10 @@ Webhook handles real-time events. Run `run.py` on a cadence (e.g. cron `0 9 1 * 
 reconciliation backstop for dropped webhooks.
 
 ## Compliance checklist (read before going live)
-- [ ] Consent to lending-offer referrals captured in the **client agreement**, and not made a
-      coercive condition of the credit-repair service itself (TCPA).
-- [ ] SMS from a 10DLC/A2P-registered number (TCPA).
-- [ ] Email has unsubscribe + physical address (CAN-SPAM).
+- [ ] Consent to lending-offer referrals captured in the **client agreement**.
+- [ ] Delivery is **email only** (to the client's DisputeFox address) — every email has a working
+      unsubscribe + a valid physical postal address (CAN-SPAM). No SMS.
+- [ ] Sending domain authenticated (SPF/DKIM/DMARC) for deliverability.
 - [ ] This app never pulls or stores credit-report data — scores + contact + consent only (FCRA).
 - [ ] Mortgage band (B5) routed via licensed partner / marketing-fee, never per-referral (RESPA).
 - [ ] Message copy makes no credit-outcome promises (CROA).

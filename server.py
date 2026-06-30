@@ -20,7 +20,7 @@ from urllib.parse import urlparse
 
 from agent import providers
 from agent.eyes import DisputeFoxPayloadSource
-from agent.hand import ConsoleSender
+from agent.hand import build_sender
 from agent.memory import Memory
 from agent.offers import load_offers
 from agent.orchestrator import process_event
@@ -34,7 +34,7 @@ def process_event_for(provider, payload, sender=None):
     memory = Memory(providers.db_path_for(provider["provider_id"]))
     offers = load_offers(providers.offers_path_for(provider["provider_id"]))
     (client,) = DisputeFoxPayloadSource(payload).fetch()
-    return process_event(client, Verifier(), sender or ConsoleSender(), memory, offers)
+    return process_event(client, Verifier(), sender or build_sender(), memory, offers)
 
 
 class Handler(BaseHTTPRequestHandler):
