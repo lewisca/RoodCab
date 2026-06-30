@@ -11,13 +11,14 @@ Memory-write policy by outcome:
   quarantine -> history + advance last_event_at ONLY (preserve last_mid) + log reason
 """
 import config
+from agent import optout
 from agent.brain import (
     propose, select_offer, offer_link, build_message, subid, idempotency_key,
 )
 from agent.verifier import Verifier, SEND, NO_ACTION, QUARANTINE
 
 
-def process_event(client, verifier, sender, memory, offers=None):
+def process_event(client, verifier, sender, memory, offers=None, provider_id="default"):
     """Run one client-updated event through the full pipeline. Returns the outcome str."""
     offers = offers or []
     state = memory.get(client.client_id)
@@ -30,6 +31,15 @@ def process_event(client, verifier, sender, memory, offers=None):
 
     if verdict.outcome == SEND:
         band = proposal.band
+
+        # Opt-out suppression (CAN-SPAM): never email an address that unsubscribed.
+        if memory.is_suppressed(optout.email_hash(client.email)):
+            print(f"[suppressed] {cid}: recipient opted out; not emailing")
+            memory.append_history(cid, eq, ex, tu, proposal.mid_score)
+            memory.upsert_state(cid, last_mid_score=proposal.mid_score,
+                                last_event_at=client.updated_at)
+            return "no_action"
+
         offer = select_offer(client, band, offers)
         if offer is None:
             # Crossed upward, but the provider has no eligible offer for this band -> there
@@ -45,12 +55,13 @@ def process_event(client, verifier, sender, memory, offers=None):
         sid = subid(cid, band)
         link = offer_link(offer, sid)
         message = build_message(client, band, offer, link)
+        unsub = optout.unsubscribe_url(config.UNSUBSCRIBE_URL, provider_id, client.email)
         print(f"[fire] {cid}: {proposal.prev_band} -> {band}  "
               f"({offer.partner} | {offer.link_source()} link | subid={sid})")
         cfg = config.ROUTING.get(band, {})
         if cfg.get("compliance_note"):
             print(f"       [!] {cfg['compliance_note']}")
-        sender.send(client, message)
+        sender.send(client, message, unsubscribe_url=unsub)
         memory.append_history(cid, eq, ex, tu, proposal.mid_score)
         memory.upsert_state(cid, last_mid_score=proposal.mid_score,
                             last_event_at=client.updated_at)

@@ -79,6 +79,20 @@ def test_quarantine_logged():
     print("ok test_quarantine_logged")
 
 
+def test_suppression_list():
+    path = _fresh_db()
+    try:
+        m = Memory(path)
+        assert m.is_suppressed("abc123") is False
+        m.suppress("abc123")
+        m.suppress("abc123")                 # idempotent
+        assert m.is_suppressed("abc123") is True
+        assert m.is_suppressed("other") is False
+    finally:
+        os.unlink(path)
+    print("ok test_suppression_list")
+
+
 def test_no_pii_columns_anywhere():
     # The schema must never have a place to store name/email/phone/dob/ssn/address.
     path = _fresh_db()
@@ -106,5 +120,6 @@ if __name__ == "__main__":
     test_upsert_preserves_unset_fields()
     test_referral_idempotency_key_is_unique()
     test_quarantine_logged()
+    test_suppression_list()
     test_no_pii_columns_anywhere()
     print("all tests passed")

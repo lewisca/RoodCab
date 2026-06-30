@@ -21,8 +21,8 @@ class FakeSender:
     def __init__(self):
         self.sent = []
 
-    def send(self, client, message):
-        self.sent.append((client.client_id, message))
+    def send(self, client, message, unsubscribe_url=None):
+        self.sent.append((client.client_id, message, unsubscribe_url))
         return True
 
 
@@ -50,9 +50,10 @@ def test_full_lifecycle():
         # 2) upward crossing B1 -> B2 -> sent, offer picked + attributed
         out = process_event(mk(638, 640, 642, updated="2026-06-16T20:30:00Z"), v, s, m, OFFERS)
         assert out == "sent"
-        assert [cid for cid, _ in s.sent] == ["C1"]
-        msg = s.sent[0][1]
+        assert [t[0] for t in s.sent] == ["C1"]
+        msg, unsub = s.sent[0][1], s.sent[0][2]
         assert "DriveNow Auto" in msg and "subid=C1-B2-202606" in msg   # provider's link + subid
+        assert unsub and "u=" in unsub                                  # per-recipient unsubscribe link
         st = m.get("C1")
         ref = st["referrals_sent"][0]
         assert ref["key"] == "C1:B2" and ref["partner"] == "DriveNow Auto"
@@ -83,6 +84,21 @@ def test_crossing_with_no_offer_is_no_action():
     finally:
         os.unlink(path)
     print("ok test_crossing_with_no_offer_is_no_action")
+
+
+def test_suppressed_recipient_is_not_emailed():
+    path = _fresh_db()
+    try:
+        from agent import optout
+        m, s, v = Memory(path), FakeSender(), Verifier()
+        process_event(mk(598, 600, 602, updated="2026-05-01T00:00:00Z"), v, s, m, OFFERS)  # baseline
+        m.suppress(optout.email_hash("m@x.com"))                       # client opts out
+        out = process_event(mk(638, 640, 642, updated="2026-06-16T20:30:00Z"), v, s, m, OFFERS)
+        assert out == "no_action"          # real B2 crossing, but suppressed -> not sent
+        assert s.sent == []
+    finally:
+        os.unlink(path)
+    print("ok test_suppressed_recipient_is_not_emailed")
 
 
 def test_quarantine_preserves_last_mid():
@@ -117,6 +133,7 @@ def test_invalid_scores_quarantine():
 if __name__ == "__main__":
     test_full_lifecycle()
     test_crossing_with_no_offer_is_no_action()
+    test_suppressed_recipient_is_not_emailed()
     test_quarantine_preserves_last_mid()
     test_invalid_scores_quarantine()
     print("all tests passed")

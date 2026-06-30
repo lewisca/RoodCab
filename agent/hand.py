@@ -20,24 +20,21 @@ import config
 
 class Sender(ABC):
     @abstractmethod
-    def send(self, client, message) -> bool: ...
+    def send(self, client, message, unsubscribe_url=None) -> bool: ...
 
 
-def _footer():
-    """CAN-SPAM footer appended to every email body."""
-    return (f"\n\n{config.CONSENT_LINE}\n"
-            f"Unsubscribe: {config.UNSUBSCRIBE_URL}\n{config.PHYSICAL_ADDRESS}")
-
-
-def compose(client, message):
-    """Build (subject, full_body) for the outbound email."""
-    return config.EMAIL_SUBJECT, message + _footer()
+def compose(client, message, unsubscribe_url=None):
+    """Build (subject, full_body) for the outbound email, with the CAN-SPAM footer."""
+    url = unsubscribe_url or config.UNSUBSCRIBE_URL
+    footer = (f"\n\n{config.CONSENT_LINE}\n"
+              f"Unsubscribe: {url}\n{config.PHYSICAL_ADDRESS}")
+    return config.EMAIL_SUBJECT, message + footer
 
 
 class ConsoleSender(Sender):
     """Dry-run: prints the email exactly as it would be sent. Nothing leaves the machine."""
-    def send(self, client, message):
-        subject, body = compose(client, message)
+    def send(self, client, message, unsubscribe_url=None):
+        subject, body = compose(client, message, unsubscribe_url)
         print(f"\n--- WOULD EMAIL -> {client.name} <{client.email}> ---\n"
               f"Subject: {subject}\n\n{body}\n{'-' * 48}")
         return True
@@ -55,26 +52,28 @@ class SMTPEmailSender(Sender):
         self.from_name = from_name or config.FROM_NAME
         self.starttls = config.SMTP_STARTTLS if starttls is None else starttls
 
-    def build_email(self, client, message):
+    def build_email(self, client, message, unsubscribe_url=None):
         """Construct the EmailMessage (separated from transport so it's testable)."""
         if not (client.email or "").strip():
             raise ValueError(f"client {client.client_id} has no email address on file")
-        subject, body = compose(client, message)
+        url = unsubscribe_url or config.UNSUBSCRIBE_URL
+        subject, body = compose(client, message, url)
         msg = EmailMessage()
         msg["From"] = f"{self.from_name} <{self.from_email}>"
         msg["To"] = client.email
         msg["Subject"] = subject
-        msg["List-Unsubscribe"] = f"<{config.UNSUBSCRIBE_URL}>"   # one-click opt-out
+        msg["List-Unsubscribe"] = f"<{url}>"                       # RFC 8058 one-click opt-out
+        msg["List-Unsubscribe-Post"] = "List-Unsubscribe=One-Click"
         msg.set_content(body)
         return msg
 
-    def send(self, client, message):
+    def send(self, client, message, unsubscribe_url=None):
         if not self.host:
             raise RuntimeError(
                 "SMTPEmailSender not configured. Set SMTP_HOST/SMTP_USER/SMTP_PASSWORD "
                 "(and FROM_EMAIL) for your email provider's SMTP relay."
             )
-        msg = self.build_email(client, message)
+        msg = self.build_email(client, message, unsubscribe_url)
         with smtplib.SMTP(self.host, self.port, timeout=30) as s:
             if self.starttls:
                 s.starttls()

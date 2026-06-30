@@ -101,6 +101,10 @@ their own memory DB (`data/state/<id>.db`) and offers (`data/offers/<id>.json`),
 - `POST /v1/providers/{id}/offers` (Bearer `api_token`) → save that provider's offers.
 - `POST /v1/intake/{webhook_path}` (header `X-RoodCab-Secret`) → process one DisputeFox event.
 - `POST /v1/providers/{id}/zapier` (Bearer) → attach a Zapier connection (called by the connect-server).
+- `GET /unsubscribe?u=<token>` / `POST /unsubscribe` → honor an opt-out (clickable link + RFC 8058
+  one-click). The signed token (`agent/optout.py`) binds provider + email **hash** — no plaintext
+  email in the URL. The address is added to that provider's suppression list and the pre-send check
+  in the orchestrator skips it forever after.
 
 The static site talks to this API when you set `API_BASE` in `site/app.js` (default "" = demo mode).
 The one-click Zapier connect uses the **Node** `connect-server/` (scaffold — needs `npm install` +
@@ -135,7 +139,8 @@ reconciliation backstop for dropped webhooks.
 ## Compliance checklist (read before going live)
 - [ ] Consent to lending-offer referrals captured in the **client agreement**.
 - [ ] Delivery is **email only** (to the client's DisputeFox address) — every email has a working
-      unsubscribe + a valid physical postal address (CAN-SPAM). No SMS.
+      unsubscribe (`/unsubscribe`, signed token → per-provider suppression list, checked before every
+      send) + a valid physical postal address (CAN-SPAM). No SMS.
 - [ ] Sending domain authenticated (SPF/DKIM/DMARC) for deliverability.
 - [ ] This app never pulls or stores credit-report data — scores + contact + consent only (FCRA).
 - [ ] Mortgage band (B5) routed via licensed partner / marketing-fee, never per-referral (RESPA).

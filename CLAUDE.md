@@ -67,7 +67,9 @@ RESPA: B5/mortgage offers are `compliance:"respa"` (licensed-partner/marketing-f
 `client_state(client_id, last_mid_score, last_event_at)` ·
 `scores_history(client_id, ts, eq, ex, tu, mid)` ·
 `referrals_sent(client_id, band, product, ts, key)` where `key = "{client_id}:{band}"` ·
-`quarantine_log(client_id, ts, reason)`. No name/email/phone/DOB/SSN/address — ever.
+`quarantine_log(client_id, ts, reason)` · `suppressions(email_hash, ts)` — opt-out list keyed by a
+HASH of the email (never plaintext). No name/email/phone/DOB/SSN/address — ever. The orchestrator
+checks `is_suppressed(hash(email))` before every send; `/unsubscribe` (server.py) populates it.
 
 ## 6. Verifier gates (any hard-fail → quarantine)
 1. **Sanity / freshness** — every bureau ∈ [300, 850] (reject 0/null/missing → quarantine);

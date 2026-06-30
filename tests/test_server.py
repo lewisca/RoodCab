@@ -31,8 +31,8 @@ def _b2_offer():
             "priority": 20}
 
 
-def _payload(cid, eq, ex, tu, updated):
-    return {"client_id": cid, "first_name": "Test", "last_name": "User",
+def _payload(cid, eq, ex, tu, updated, email="client@acme.com"):
+    return {"client_id": cid, "first_name": "Test", "last_name": "User", "email": email,
             "credit_scores": {"equifax": eq, "experian": ex, "transunion": tu},
             "status": "Active Client", "folder": "In Progress", "updated_at": updated}
 
@@ -88,6 +88,26 @@ def main():
         # B has never seen C1 -> first sighting -> no_action (NOT 'sent'); A's state didn't leak
         assert bb["outcome"] == "no_action"
         print("ok multi-tenant isolation")
+
+        # unsubscribe loop: an opted-out client is suppressed and never emailed
+        from agent import optout
+        code, c = _req("POST", base + "/v1/providers", {"company": "Gamma Repair"})
+        _req("POST", base + f"/v1/providers/{c['provider_id']}/offers",
+             {"offers": [_b2_offer()]}, {"Authorization": "Bearer " + c["api_token"]})
+        email = "optout@acme.com"
+        token = optout.make_token(c["provider_id"], email)
+        # invalid token -> 400; valid one-click unsubscribe -> 200
+        code, _ = _req("POST", base + "/unsubscribe?u=garbage")
+        assert code == 400
+        code, ub = _req("POST", base + "/unsubscribe?u=" + token)
+        assert code == 200 and ub["unsubscribed"] is True
+        # baseline + crossing for that email -> suppressed (no_action, not 'sent')
+        hC = {"X-RoodCab-Secret": c["secret"]}
+        intakeC = base + urlparse(c["webhook_url"]).path
+        _req("POST", intakeC, _payload("CX", 598, 600, 602, "2026-05-01T00:00:00Z", email=email), hC)
+        code, r = _req("POST", intakeC, _payload("CX", 638, 640, 642, "2026-06-16T20:30:00Z", email=email), hC)
+        assert r["outcome"] == "no_action"
+        print("ok unsubscribe suppresses future sends")
 
         print("all tests passed")
     finally:

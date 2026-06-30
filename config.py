@@ -82,8 +82,12 @@ FROM_NAME = os.getenv("FROM_NAME", "Rood Cab")
 EMAIL_SUBJECT = os.getenv("EMAIL_SUBJECT", "A financing option matched to your new credit tier")
 
 # CAN-SPAM: a commercial email needs a working opt-out AND a valid physical postal address.
+# UNSUBSCRIBE_URL is the base of the live /unsubscribe endpoint (server.py); a signed
+# per-recipient token is appended as ?u=... (see agent/optout.py).
 UNSUBSCRIBE_URL = os.getenv("UNSUBSCRIBE_URL", "https://roodcab.example/unsubscribe")
 PHYSICAL_ADDRESS = os.getenv("PHYSICAL_ADDRESS", "Rood Cab, 123 Example St, Suite 100, Miami, FL 33132")
+# Signs unsubscribe tokens so they can't be forged. CHANGE in production.
+UNSUBSCRIBE_SECRET = os.getenv("UNSUBSCRIBE_SECRET", "dev-unsubscribe-secret-change-me")
 
 # SMTP relay — works with SendGrid / Amazon SES / Mailgun / Postmark / etc.
 SMTP_HOST = os.getenv("SMTP_HOST", "")

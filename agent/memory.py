@@ -50,6 +50,9 @@ class Memory:
                 subid TEXT, ts TEXT, key TEXT UNIQUE)""")
             c.execute("""CREATE TABLE IF NOT EXISTS quarantine_log(
                 client_id TEXT, ts TEXT, reason TEXT)""")
+            # Opt-out suppression: stores a HASH of the email (no plaintext), see agent/optout.py
+            c.execute("""CREATE TABLE IF NOT EXISTS suppressions(
+                email_hash TEXT PRIMARY KEY, ts TEXT)""")
 
     def get(self, client_id):
         """Return the client's state dict (incl. referrals_sent list), or None."""
@@ -118,3 +121,14 @@ class Memory:
         with self._conn() as c:
             c.execute("INSERT INTO quarantine_log(client_id,ts,reason) VALUES(?,?,?)",
                       (client_id, _now(), reason))
+
+    def suppress(self, email_hash):
+        """Add an email hash to the opt-out list. Idempotent."""
+        with self._conn() as c:
+            c.execute("INSERT OR IGNORE INTO suppressions(email_hash,ts) VALUES(?,?)",
+                      (email_hash, _now()))
+
+    def is_suppressed(self, email_hash):
+        with self._conn() as c:
+            return c.execute("SELECT 1 FROM suppressions WHERE email_hash=?",
+                             (email_hash,)).fetchone() is not None

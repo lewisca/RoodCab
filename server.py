@@ -16,9 +16,9 @@ This is the real backend the static site (site/) talks to: signup -> /v1/provide
 import json
 import os
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
-from urllib.parse import urlparse
+from urllib.parse import urlparse, parse_qs
 
-from agent import providers
+from agent import providers, optout
 from agent.eyes import DisputeFoxPayloadSource
 from agent.hand import build_sender
 from agent.memory import Memory
@@ -31,10 +31,25 @@ PUBLIC_BASE = os.getenv("PUBLIC_BASE_URL", "http://localhost:8000")
 
 def process_event_for(provider, payload, sender=None):
     """Run one event through the pipeline using the provider's isolated resources."""
-    memory = Memory(providers.db_path_for(provider["provider_id"]))
-    offers = load_offers(providers.offers_path_for(provider["provider_id"]))
+    pid = provider["provider_id"]
+    memory = Memory(providers.db_path_for(pid))
+    offers = load_offers(providers.offers_path_for(pid))
     (client,) = DisputeFoxPayloadSource(payload).fetch()
-    return process_event(client, Verifier(), sender or build_sender(), memory, offers)
+    return process_event(client, Verifier(), sender or build_sender(), memory, offers,
+                         provider_id=pid)
+
+
+def suppress_token(token):
+    """Resolve a signed unsubscribe token and add the email hash to the provider's list.
+    Returns True if a valid token suppressed an address, else False."""
+    parsed = optout.parse_token(token or "")
+    if not parsed:
+        return False
+    provider_id, eh = parsed
+    if not providers.get(provider_id):
+        return False
+    Memory(providers.db_path_for(provider_id)).suppress(eh)
+    return True
 
 
 class Handler(BaseHTTPRequestHandler):
@@ -50,6 +65,14 @@ class Handler(BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(body)
 
+    def _send_html(self, code, html):
+        body = html.encode()
+        self.send_response(code)
+        self.send_header("Content-Type", "text/html; charset=utf-8")
+        self.send_header("Content-Length", str(len(body)))
+        self.end_headers()
+        self.wfile.write(body)
+
     def _read_json(self):
         n = int(self.headers.get("Content-Length") or 0)
         if not n:
@@ -58,6 +81,9 @@ class Handler(BaseHTTPRequestHandler):
             return json.loads(self.rfile.read(n) or b"{}")
         except ValueError:
             return None
+
+    def _query_token(self):
+        return (parse_qs(urlparse(self.path).query).get("u") or [""])[0]
 
     def _bearer_ok(self, rec):
         auth = self.headers.get("Authorization", "")
@@ -75,12 +101,33 @@ class Handler(BaseHTTPRequestHandler):
         self.end_headers()
 
     def do_GET(self):
-        if urlparse(self.path).path == "/healthz":
+        path = urlparse(self.path).path
+        if path == "/healthz":
             return self._send(200, {"ok": True})
+        # GET /unsubscribe?u=<token>  -> clicked link; suppress + show a confirmation page
+        if path == "/unsubscribe":
+            ok = suppress_token(self._query_token())
+            if ok:
+                return self._send_html(200,
+                    "<h2>You're unsubscribed.</h2><p>You won't receive further "
+                    "lending-offer emails. You can close this window.</p>")
+            return self._send_html(400,
+                "<h2>Invalid or expired link.</h2><p>This unsubscribe link could not be verified.</p>")
         self._send(404, {"error": "not found"})
 
     def do_POST(self):
         parts = [p for p in urlparse(self.path).path.split("/") if p]
+
+        # POST /unsubscribe (RFC 8058 one-click). Token from ?u= or a urlencoded body.
+        if parts == ["unsubscribe"]:
+            token = self._query_token()
+            if not token:
+                n = int(self.headers.get("Content-Length") or 0)
+                raw = self.rfile.read(n).decode("utf-8", "ignore") if n else ""
+                token = (parse_qs(raw).get("u") or [""])[0]
+            ok = suppress_token(token)
+            return self._send(200 if ok else 400, {"unsubscribed": ok})
+
         body = self._read_json()
         if body is None:
             return self._send(400, {"error": "invalid json"})
