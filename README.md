@@ -1,10 +1,39 @@
-# score-router-agent
+# Rood Cab — a DisputeFox monetization feature
+
+> **What this is:** Rood Cab is designed to become a **native feature inside DisputeFox**.
+> It watches the credit scores DisputeFox already tracks and, the moment a client graduates
+> into a higher lending tier, surfaces **one** compliant, matched financing referral — turning
+> a credit-repair win into commission revenue for the provider, all in one place.
 
 Watches credit-repair clients' three bureau scores and, when a client's **mid-score
 crosses up** into a new band, sends **one** matched financing offer (tracked link) —
 but only after a Verifier confirms the crossing is real, fresh, non-duplicate, eligible,
 and compliant. Built as an **Eyes / Brain / Verifier / Hand / Memory** agent. Every event
 resolves to **sent**, **no_action**, or **quarantine**.
+
+Today it runs **standalone** (DisputeFox → Zapier → webhook) so it can be demoed and tested
+end-to-end without DisputeFox's cooperation. The same core is built to drop **inside**
+DisputeFox as a built-in feature — see [Built to become a DisputeFox feature](#built-to-become-a-disputefox-feature).
+
+## Built to become a DisputeFox feature
+The data source, the provider accounts, and the client comms all already live in DisputeFox.
+So most of this repo is **glue that exists only because Rood Cab is currently external** — once
+it's a native feature, that glue is replaced by DisputeFox's own primitives, and the
+**decision + compliance core is the durable asset**.
+
+| Area | Standalone today | Native DisputeFox feature |
+|---|---|---|
+| **Keep (the asset)** | `brain.py` (median, bands, crossing), `verifier.py` (gates 1–6), `offers.py` (offer selection + `subid` attribution), no-PII discipline, tests | Unchanged — this is the IP |
+| **Ingest** | DisputeFox → Zapier → `webhook.py` (`/v1/intake`, `X-RoodCab-Secret`) | Internal "client updated" event reads scores straight from DisputeFox's DB — no Zapier, no webhook, no secrets |
+| **Onboarding / connect** | `connect-server/` (Zapier SDK), `site/` signup + connect steps | Removed — providers are already DisputeFox accounts; a settings toggle, not a separate site |
+| **Tenancy** | `agent/providers.py` per-provider files + tokens | Reuse DisputeFox tenancy, auth/RBAC, and audit log |
+| **Send** | `ConsoleSender` / Twilio + SendGrid stubs | DisputeFox's existing client comms + STOP/opt-out handling |
+| **Consent (gate 5)** | `CONSENT_VIA_AGREEMENT` assumption | A real consent field captured at DisputeFox client onboarding |
+| **Add for native** | — | Data-mapping adapter (their schema → `ClientScore`), conversion/payout callback against `subid`, in-app offers settings + earnings dashboard + quarantine-review UI |
+
+**Pitch framing:** lead with the Verifier. The hard part of monetizing credit-repair clients
+isn't the offer — it's the FCRA / TCPA / RESPA / CROA risk. Rood Cab is the guardrail that makes
+it safe, already modeled on DisputeFox's own "client updated" payload.
 
 ## Quickstart (dry-run, no setup)
 ```bash
