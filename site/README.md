@@ -45,7 +45,7 @@ On submit the form shows a short "Verifying…" gate, then reveals two ways to c
    SDK (`@zapier/zapier-sdk`) to mint a connect link and returns `{ "connect_url": "..." }`.
    The SDK is Node-only, so it lives in that backend service, not in the Python agent.
 2. **Manual webhook (fallback)** — the original two steps for CRMs not on the SDK path:
-   build a "Client Update" Zap, then paste the generated Rood Cab webhook URL + signing
+   build a "New Report Imported" Zap, then paste the generated Rood Cab webhook URL + signing
    secret (`X-RoodCab-Secret`) into a "Webhooks by Zapier → POST" action. This maps to the
    Python agent's `webhook.py` intake.
 

@@ -1,6 +1,6 @@
 """Webhook intake (primary path): DisputeFox -> Zapier -> here -> one iteration.
 
-This is the transport-thin entry point. Zapier POSTs the "client updated" payload
+This is the transport-thin entry point. Zapier POSTs the "New Report Imported" payload
 (CLAUDE.md §3) and we run exactly one event through the pipeline.
 
 `handle_payload` is framework-agnostic so you can mount it under whatever host you

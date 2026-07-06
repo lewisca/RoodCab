@@ -14,7 +14,7 @@ eligible, and compliant. Every event ends in exactly one of three states:
 
 ## 2. Architecture — Eyes / Brain / Verifier / Hand / Memory
 ```
-DisputeFox "client updated"  ──Zapier──▶  webhook.py
+DisputeFox "New Report Imported"  ──Zapier──▶  webhook.py
                                               │
    EYES ──▶ BRAIN ──▶ VERIFIER ──▶ HAND      (one event = one iteration)
   ingest   derive    gates 1–6    send
@@ -38,7 +38,7 @@ The Verifier between Brain and Hand is the load-bearing half of the autonomy: a 
 pass confirming a referral before anything irreversible fires is what makes the loop
 safe to leave running.
 
-## 3. Data contract — DisputeFox "client updated" payload
+## 3. Data contract — DisputeFox "New Report Imported" payload
 Fields the agent **uses**: `client_id`, `credit_scores{equifax,experian,transunion}`,
 `updated_at`, `status`, `folder`, and (optional) a configured agreement marker.
 Fields the agent must **never read or persist**: name, email, phones, `date_of_birth`,

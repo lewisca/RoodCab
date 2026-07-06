@@ -24,7 +24,7 @@ it's a native feature, that glue is replaced by DisputeFox's own primitives, and
 | Area | Standalone today | Native DisputeFox feature |
 |---|---|---|
 | **Keep (the asset)** | `brain.py` (median, bands, crossing), `verifier.py` (gates 1–6), `offers.py` (offer selection + `subid` attribution), no-PII discipline, tests | Unchanged — this is the IP |
-| **Ingest** | DisputeFox → Zapier → `webhook.py` (`/v1/intake`, `X-RoodCab-Secret`) | Internal "client updated" event reads scores straight from DisputeFox's DB — no Zapier, no webhook, no secrets |
+| **Ingest** | DisputeFox → Zapier ("New Report Imported" trigger) → `webhook.py` (`/v1/intake`, `X-RoodCab-Secret`) | Internal report-import event reads scores straight from DisputeFox's DB — no Zapier, no webhook, no secrets |
 | **Onboarding / connect** | `connect-server/` (Zapier SDK), `site/` signup + connect steps | Removed — providers are already DisputeFox accounts; a settings toggle, not a separate site |
 | **Tenancy** | `agent/providers.py` per-provider files + tokens | Reuse DisputeFox tenancy, auth/RBAC, and audit log |
 | **Send** | `ConsoleSender` / Twilio + SendGrid stubs | DisputeFox's existing client comms + STOP/opt-out handling |
@@ -33,7 +33,7 @@ it's a native feature, that glue is replaced by DisputeFox's own primitives, and
 
 **Pitch framing:** lead with the Verifier. The hard part of monetizing credit-repair clients
 isn't the offer — it's the FCRA / TCPA / RESPA / CROA risk. Rood Cab is the guardrail that makes
-it safe, already modeled on DisputeFox's own "client updated" payload.
+it safe, already modeled on DisputeFox's own "New Report Imported" payload.
 
 ## Quickstart (dry-run, no setup)
 ```bash

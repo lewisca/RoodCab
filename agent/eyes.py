@@ -2,7 +2,7 @@
 
 Three sources:
   * CSVScoreSource          -- batch export / reconciliation (works today)
-  * DisputeFoxPayloadSource -- one webhook "client updated" event (primary path)
+  * DisputeFoxPayloadSource -- one webhook "New Report Imported" event (primary path)
   * MonitoringAPIScoreSource-- production pull sensor (assumed contract; unverified)
 
 FCRA boundary (compliance invariant -- DO NOT relax): Eyes reads ONLY the three
@@ -108,11 +108,17 @@ class CSVScoreSource(ScoreSource):
 
 
 class DisputeFoxPayloadSource(ScoreSource):
-    """Primary path: one DisputeFox 'client updated' webhook payload -> one client.
+    """Primary path: one DisputeFox 'New Report Imported' webhook payload -> one client.
 
     The payload nests bureau scores under "credit_scores" (see CLAUDE.md §3); we
     flatten just those three plus the FCRA-safe top-level fields and ignore the
     rest (SSN, DOB, address, etc. are never read or stored).
+
+    TODO(verify-live): field mapping below is against the spec doc, not the live
+    'New Report Imported' trigger. Run Zapier's "Try It" and confirm: (1) it delivers
+    all THREE bureau scores (its description says "credit score", singular) and their
+    real field names, and (2) the report line items it carries ("negative and deleted
+    items") stay dropped here — FCRA: score + contact + consent only.
     """
     def __init__(self, payload: dict):
         self.payload = payload or {}

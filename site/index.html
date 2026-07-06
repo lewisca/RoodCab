@@ -112,7 +112,7 @@
     <ol class="steps">
       <li class="step reveal">
         <span class="step-n">1</span>
-        <div><h3>Connect</h3><p>Your CRM sends a "client updated" event through Zapier to a
+        <div><h3>Connect</h3><p>Your CRM sends a "New Report Imported" event through Zapier to a
         secure webhook. Transport only — it carries scores, never detects crossings.</p></div>
       </li>
       <li class="step reveal">
@@ -259,7 +259,7 @@
       <div class="onboard-head">
         <span class="verified">✓ Verified</span>
         <h3>Connect your data to go live</h3>
-        <p>Authorize your CRM through Zapier and Rood Cab starts listening for Client Update
+        <p>Authorize your CRM through Zapier and Rood Cab starts listening for New Report Imported
         events — one click, no Zap to build, no secrets to copy.</p>
       </div>
 
@@ -271,7 +271,7 @@
           <button class="btn btn-lg btn-block" id="connect-zapier" type="button">Connect with Zapier</button>
           <ul class="connect-points">
             <li>Authorize DisputeFox once in a Zapier-hosted window.</li>
-            <li>We subscribe to the <b>“Client Update”</b> event for you.</li>
+            <li>We subscribe to the <b>“New Report Imported”</b> event for you.</li>
             <li>Zapier manages tokens, refresh &amp; retries. Nothing to paste.</li>
           </ul>
         </div>
@@ -301,10 +301,10 @@
           <ol class="ostep-list">
             <li>In Zapier, click <b>Create&nbsp;→&nbsp;Zap</b>.</li>
             <li>For the <b>Trigger app</b>, choose <b>DisputeFox</b> (or your CRM).</li>
-            <li>Set the trigger event to the <b>“Client Update”</b> Zap.</li>
+            <li>Set the trigger event to <b>“New Report Imported”</b>.</li>
             <li>Connect your DisputeFox account, then <b>Test trigger</b> so Zapier pulls a sample client.</li>
           </ol>
-          <button class="btn btn-block" id="step1-next" type="button">I've set up the Client Update trigger →</button>
+          <button class="btn btn-block" id="step1-next" type="button">I've set up the New Report Imported trigger →</button>
         </div>
 
         <!-- STEP 2 -->
@@ -356,7 +356,7 @@
       <div class="ostep onboard-done" id="ostep-done" hidden>
         <div class="done-check" aria-hidden="true">✓</div>
         <h4>You're live.</h4>
-        <p>Rood Cab is now listening for <b>Client Update</b> events and will surface your matched
+        <p>Rood Cab is now listening for <b>New Report Imported</b> events and will surface your matched
         offers on each upward crossing — in <b>dry-run</b> first, so you can watch exactly what it
         would send before anything goes live. <span id="offers-count-note"></span></p>
       </div>
