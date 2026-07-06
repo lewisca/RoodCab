@@ -8,6 +8,7 @@ from agent.eyes import ClientScore
 from agent.memory import Memory
 from agent.verifier import Verifier
 from agent.offers import Offer
+from agent.brain import subid as make_subid
 from agent.orchestrator import process_event
 
 
@@ -52,12 +53,12 @@ def test_full_lifecycle():
         assert out == "sent"
         assert [t[0] for t in s.sent] == ["C1"]
         msg, unsub = s.sent[0][1], s.sent[0][2]
-        assert "DriveNow Auto" in msg and "subid=C1-B2-202606" in msg   # provider's link + subid
+        assert "DriveNow Auto" in msg and ("subid=" + make_subid("C1", "B2")) in msg
         assert unsub and "u=" in unsub                                  # per-recipient unsubscribe link
         st = m.get("C1")
         ref = st["referrals_sent"][0]
         assert ref["key"] == "C1:B2" and ref["partner"] == "DriveNow Auto"
-        assert ref["subid"] == "C1-B2-202606"
+        assert ref["subid"] == make_subid("C1", "B2")
 
         # 3) replay the exact same crossing event -> no_action (freshness), no resend
         out = process_event(mk(638, 640, 642, updated="2026-06-16T20:30:00Z"), v, s, m, OFFERS)

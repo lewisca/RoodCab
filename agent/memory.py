@@ -53,6 +53,10 @@ class Memory:
             # Opt-out suppression: stores a HASH of the email (no plaintext), see agent/optout.py
             c.execute("""CREATE TABLE IF NOT EXISTS suppressions(
                 email_hash TEXT PRIMARY KEY, ts TEXT)""")
+            # Conversions reported by lending partners, keyed to a sent referral by subid.
+            c.execute("""CREATE TABLE IF NOT EXISTS conversions(
+                subid TEXT, status TEXT, amount REAL, currency TEXT, partner_ref TEXT,
+                ts TEXT, key TEXT PRIMARY KEY)""")
 
     def get(self, client_id):
         """Return the client's state dict (incl. referrals_sent list), or None."""
@@ -132,3 +136,28 @@ class Memory:
         with self._conn() as c:
             return c.execute("SELECT 1 FROM suppressions WHERE email_hash=?",
                              (email_hash,)).fetchone() is not None
+
+    def record_conversion(self, subid, status="converted", amount=0.0, currency="USD",
+                          partner_ref=""):
+        """Record a partner-reported conversion. Idempotent on the partner's ref (or subid),
+        so retries/status updates (approved -> funded) overwrite rather than duplicate."""
+        key = partner_ref or subid
+        with self._conn() as c:
+            c.execute("INSERT OR REPLACE INTO conversions"
+                      "(subid,status,amount,currency,partner_ref,ts,key) VALUES(?,?,?,?,?,?,?)",
+                      (subid, status, float(amount or 0), currency, partner_ref, _now(), key))
+
+    def earnings(self):
+        """Conversions joined to the referral they came from (partner/band/client) + totals."""
+        with self._conn() as c:
+            rows = c.execute(
+                "SELECT c.subid, c.status, c.amount, c.currency, c.ts, "
+                "r.partner, r.band, r.client_id "
+                "FROM conversions c LEFT JOIN referrals_sent r ON r.subid = c.subid "
+                "ORDER BY c.ts").fetchall()
+        convs = [{"subid": s, "status": st, "amount": a, "currency": cur, "ts": t,
+                  "partner": p, "band": b, "client_id": cid}
+                 for (s, st, a, cur, t, p, b, cid) in rows]
+        return {"count": len(convs),
+                "total_amount": round(sum(x["amount"] or 0 for x in convs), 2),
+                "conversions": convs}

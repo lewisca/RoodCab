@@ -18,6 +18,7 @@ import os
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import urlparse, parse_qs
 
+import config
 from agent import providers, optout
 from agent.eyes import DisputeFoxPayloadSource
 from agent.hand import build_sender
@@ -50,6 +51,32 @@ def suppress_token(token):
         return False
     Memory(providers.db_path_for(provider_id)).suppress(eh)
     return True
+
+
+def _to_float(v):
+    try:
+        return float(v)
+    except (TypeError, ValueError):
+        return 0.0
+
+
+def record_conversion(params):
+    """Route a partner conversion postback (keyed by subid) to the right provider's store.
+    Returns (status_code, body)."""
+    subid = (params.get("subid") or "").strip()
+    if not subid:
+        return 400, {"error": "subid is required"}
+    provider_id = providers.provider_for_subid(subid)
+    if not provider_id or not providers.get(provider_id):
+        return 404, {"error": "unknown subid"}
+    Memory(providers.db_path_for(provider_id)).record_conversion(
+        subid,
+        status=params.get("status") or "converted",
+        amount=_to_float(params.get("amount")),
+        currency=params.get("currency") or "USD",
+        partner_ref=params.get("partner_ref") or "",
+    )
+    return 200, {"recorded": True, "provider_id": provider_id, "subid": subid}
 
 
 class Handler(BaseHTTPRequestHandler):
@@ -85,6 +112,15 @@ class Handler(BaseHTTPRequestHandler):
     def _query_token(self):
         return (parse_qs(urlparse(self.path).query).get("u") or [""])[0]
 
+    def _query_params(self):
+        return {k: v[0] for k, v in parse_qs(urlparse(self.path).query).items()}
+
+    def _postback_authed(self):
+        """Conversion postbacks: shared secret via header or ?key= (affiliate pixels use GET)."""
+        secret = config.CONVERSIONS_SECRET
+        return (self.headers.get("X-RoodCab-Postback-Secret") == secret
+                or self._query_params().get("key") == secret)
+
     def _bearer_ok(self, rec):
         auth = self.headers.get("Authorization", "")
         return auth.startswith("Bearer ") and auth[7:] == rec["api_token"]
@@ -113,6 +149,21 @@ class Handler(BaseHTTPRequestHandler):
                     "lending-offer emails. You can close this window.</p>")
             return self._send_html(400,
                 "<h2>Invalid or expired link.</h2><p>This unsubscribe link could not be verified.</p>")
+        # GET /v1/conversions?subid=..&amount=..&key=..  -> S2S pixel-style postback
+        if path == "/v1/conversions":
+            if not self._postback_authed():
+                return self._send(401, {"error": "bad postback secret"})
+            code, body = record_conversion(self._query_params())
+            return self._send(code, body)
+        # GET /v1/providers/{id}/earnings  -> attributed conversions + totals (auth)
+        parts = [p for p in path.split("/") if p]
+        if len(parts) == 4 and parts[:2] == ["v1", "providers"] and parts[3] == "earnings":
+            rec = providers.get(parts[2])
+            if not rec:
+                return self._send(404, {"error": "unknown provider"})
+            if not self._bearer_ok(rec):
+                return self._send(401, {"error": "bad or missing api token"})
+            return self._send(200, Memory(providers.db_path_for(parts[2])).earnings())
         self._send(404, {"error": "not found"})
 
     def do_POST(self):
@@ -127,6 +178,17 @@ class Handler(BaseHTTPRequestHandler):
                 token = (parse_qs(raw).get("u") or [""])[0]
             ok = suppress_token(token)
             return self._send(200 if ok else 400, {"unsubscribed": ok})
+
+        # POST /v1/conversions -> partner postback (JSON body and/or ?query params)
+        if parts == ["v1", "conversions"]:
+            if not self._postback_authed():
+                return self._send(401, {"error": "bad postback secret"})
+            params = self._query_params()
+            posted = self._read_json()
+            if isinstance(posted, dict):
+                params.update({k: v for k, v in posted.items() if v is not None})
+            code, out = record_conversion(params)
+            return self._send(code, out)
 
         body = self._read_json()
         if body is None:

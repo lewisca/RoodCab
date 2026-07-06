@@ -89,6 +89,28 @@ def main():
         assert bb["outcome"] == "no_action"
         print("ok multi-tenant isolation")
 
+        # conversion postback loop: partner reports a conversion -> attributed to provider A
+        import config
+        from agent.brain import subid as make_subid
+        sid = make_subid("C1", "B2")                     # the subid A's crossing email carried
+        # no secret -> 401
+        code, _ = _req("POST", base + "/v1/conversions", {"subid": sid, "amount": 120})
+        assert code == 401
+        # valid postback -> recorded against provider A
+        hp = {"X-RoodCab-Postback-Secret": config.CONVERSIONS_SECRET}
+        code, cv = _req("POST", base + "/v1/conversions",
+                        {"subid": sid, "status": "funded", "amount": 120}, hp)
+        assert code == 200 and cv["recorded"] and cv["provider_id"] == a["provider_id"]
+        # unknown subid -> 404
+        code, _ = _req("POST", base + "/v1/conversions", {"subid": "NOPE-1"}, hp)
+        assert code == 404
+        # earnings for A reflect it (auth required)
+        code, earn = _req("GET", base + f"/v1/providers/{a['provider_id']}/earnings",
+                          None, {"Authorization": "Bearer " + a["api_token"]})
+        assert code == 200 and earn["count"] == 1 and earn["total_amount"] == 120
+        assert earn["conversions"][0]["partner"] == "DriveNow Auto"     # joined to the referral
+        print("ok conversion postback -> earnings")
+
         # unsubscribe loop: an opted-out client is suppressed and never emailed
         from agent import optout
         code, c = _req("POST", base + "/v1/providers", {"company": "Gamma Repair"})

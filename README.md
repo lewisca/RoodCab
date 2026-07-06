@@ -105,6 +105,12 @@ their own memory DB (`data/state/<id>.db`) and offers (`data/offers/<id>.json`),
   one-click). The signed token (`agent/optout.py`) binds provider + email **hash** — no plaintext
   email in the URL. The address is added to that provider's suppression list and the pre-send check
   in the orchestrator skips it forever after.
+- `POST` / `GET /v1/conversions` (secret via `X-RoodCab-Postback-Secret` header or `?key=`) → a lending
+  partner reports a conversion, keyed by our `subid` (`{subid, status, amount, currency, partner_ref}`).
+  The global `subid → provider` index (written when the referral fires) routes it to that provider's
+  isolated `conversions` store. Idempotent on the partner's ref. This closes the payout loop.
+- `GET /v1/providers/{id}/earnings` (Bearer) → that provider's conversions joined to the referral they
+  came from (partner / band / client) + totals, so payouts reconcile.
 
 The static site talks to this API when you set `API_BASE` in `site/app.js` (default "" = demo mode).
 The one-click Zapier connect uses the **Node** `connect-server/` (scaffold — needs `npm install` +

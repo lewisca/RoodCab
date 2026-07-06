@@ -89,6 +89,11 @@ PHYSICAL_ADDRESS = os.getenv("PHYSICAL_ADDRESS", "Rood Cab, 123 Example St, Suit
 # Signs unsubscribe tokens so they can't be forged. CHANGE in production.
 UNSUBSCRIBE_SECRET = os.getenv("UNSUBSCRIBE_SECRET", "dev-unsubscribe-secret-change-me")
 
+# --- conversion postbacks (payout loop) --------------------------------------
+# Lending partners POST here when a referral converts, keyed by our subid. Shared
+# secret authorizes the postback. CHANGE in production; real setups sign per-partner.
+CONVERSIONS_SECRET = os.getenv("CONVERSIONS_SECRET", "dev-postback-secret-change-me")
+
 # SMTP relay — works with SendGrid / Amazon SES / Mailgun / Postmark / etc.
 SMTP_HOST = os.getenv("SMTP_HOST", "")
 SMTP_PORT = int(os.getenv("SMTP_PORT", "587"))

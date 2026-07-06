@@ -115,6 +115,33 @@ def attach_zapier(provider_id, connection_id):
     return providers.get(provider_id)
 
 
+def _subid_index_file():
+    return os.path.join(data_dir(), "subid_index.json")
+
+
+def index_subid(subid, provider_id):
+    """Map a sent referral's subid -> provider, so a later conversion postback (which
+    only knows the subid) can be routed to the right provider's isolated store.
+    (A JSON file for the scaffold; use an indexed table/KV store at scale.)"""
+    try:
+        with open(_subid_index_file(), encoding="utf-8") as f:
+            idx = json.load(f)
+    except FileNotFoundError:
+        idx = {}
+    idx[subid] = provider_id
+    os.makedirs(data_dir(), exist_ok=True)
+    with open(_subid_index_file(), "w", encoding="utf-8") as f:
+        json.dump(idx, f, indent=2)
+
+
+def provider_for_subid(subid):
+    try:
+        with open(_subid_index_file(), encoding="utf-8") as f:
+            return json.load(f).get(subid)
+    except FileNotFoundError:
+        return None
+
+
 def save_offers(provider_id, offers):
     """Validate + persist a provider's offers to their isolated catalog file."""
     if not isinstance(offers, list):

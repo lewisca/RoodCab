@@ -10,6 +10,7 @@ state.db
 data/state/
 data/offers/
 data/providers.json
+data/subid_index.json
 
 # Node (connect-server)
 node_modules/

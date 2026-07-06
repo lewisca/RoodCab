@@ -61,7 +61,23 @@ def test_save_offers_validates():
         shutil.rmtree(tmp, ignore_errors=True)
 
 
+def test_subid_index_routes_to_provider():
+    tmp = tempfile.mkdtemp()
+    os.environ["DATA_DIR"] = tmp
+    try:
+        providers.index_subid("C1-B2-202606", "acme-ab12")
+        providers.index_subid("C9-B3-202606", "beta-cd34")
+        assert providers.provider_for_subid("C1-B2-202606") == "acme-ab12"
+        assert providers.provider_for_subid("C9-B3-202606") == "beta-cd34"
+        assert providers.provider_for_subid("never-sent") is None
+        print("ok test_subid_index_routes_to_provider")
+    finally:
+        os.environ.pop("DATA_DIR", None)
+        shutil.rmtree(tmp, ignore_errors=True)
+
+
 if __name__ == "__main__":
     test_registration_and_isolation()
     test_save_offers_validates()
+    test_subid_index_routes_to_provider()
     print("all tests passed")

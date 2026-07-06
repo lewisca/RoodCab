@@ -11,7 +11,7 @@ Memory-write policy by outcome:
   quarantine -> history + advance last_event_at ONLY (preserve last_mid) + log reason
 """
 import config
-from agent import optout
+from agent import optout, providers
 from agent.brain import (
     propose, select_offer, offer_link, build_message, subid, idempotency_key,
 )
@@ -67,6 +67,8 @@ def process_event(client, verifier, sender, memory, offers=None, provider_id="de
                             last_event_at=client.updated_at)
         memory.record_referral(cid, band, idempotency_key(cid, band), offer_id=offer.id,
                                partner=offer.partner, product=offer.product, subid=sid)
+        if provider_id != "default":       # multi-tenant: route future conversion postbacks
+            providers.index_subid(sid, provider_id)
         return "sent"
 
     if verdict.outcome == QUARANTINE:
