@@ -22,6 +22,7 @@
 }
 
 *{box-sizing:border-box}
+[hidden]{display:none !important}   /* the hidden attribute must win over class display rules */
 html{scroll-behavior:smooth}
 body{
   margin:0;font-family:var(--font);background:var(--bg);color:var(--text);
