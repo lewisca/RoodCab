@@ -149,6 +149,34 @@ def test_disputefox_payload_maps_safe_fields_only():
     print("ok test_disputefox_payload_maps_safe_fields_only")
 
 
+def test_disputefox_real_new_report_imported_payload():
+    # The exact "New Report Imported" payload shape confirmed from Zapier "Try It":
+    # nested client_info + credit_scores, timestamp at credit_scores.last_updated_at,
+    # and a report_summary of line items that must be ignored (FCRA).
+    payload = {
+        "client_info": {"client_id": "12345", "first_name": "John", "last_name": "Doe",
+                        "email": "johndoe@example.com", "phone": "+15555551234",
+                        "status": "Active Client"},
+        "credit_scores": {"equifax": 620, "experian": 645, "transunion": 615,
+                          "last_updated_at": "2026-07-07T21:04:00Z"},
+        "monitoring_details": {"provider": "IdentityIQ", "last_import_date": "2026-07-07"},
+        "report_summary": {"total_negative_items": 14, "new_negative_items_detected": 2,
+                           "total_deleted_items": 3, "new_deleted_items_detected": 1},
+    }
+    (c,) = DisputeFoxPayloadSource(payload).fetch()
+    assert c.client_id == "12345" and c.name == "John Doe"
+    assert c.email == "johndoe@example.com"
+    assert (c.equifax, c.experian, c.transunion) == (620, 645, 615)
+    assert c.status == "Active Client"
+    assert c.updated_at == "2026-07-07T21:04:00Z"          # from credit_scores.last_updated_at
+    from agent.brain import mid_score, band_for
+    assert mid_score(c) == 620 and band_for(620) == "B2"   # median(615,620,645)=620 -> B2
+    # FCRA: report line items are never mapped onto the client
+    for f in ("total_negative_items", "new_negative_items_detected", "report_summary"):
+        assert not hasattr(c, f)
+    print("ok test_disputefox_real_new_report_imported_payload")
+
+
 def test_disputefox_payload_accepts_flat_bureau_scores():
     # A plain Zapier "Webhooks -> POST" sends flat key/value data (scores at top level,
     # often as strings) rather than nested under credit_scores. Both must work.
@@ -213,6 +241,7 @@ if __name__ == "__main__":
     test_invalid_bureau_yields_unsane_row()
     test_401_raises_clear_auth_error()
     test_disputefox_payload_maps_safe_fields_only()
+    test_disputefox_real_new_report_imported_payload()
     test_disputefox_payload_accepts_flat_bureau_scores()
     test_csv_source_parses_three_bureaus()
     test_factory_defaults_to_csv()

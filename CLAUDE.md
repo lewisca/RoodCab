@@ -39,10 +39,13 @@ pass confirming a referral before anything irreversible fires is what makes the 
 safe to leave running.
 
 ## 3. Data contract — DisputeFox "New Report Imported" payload
-Fields the agent **uses**: `client_id`, `credit_scores{equifax,experian,transunion}`,
-`updated_at`, `status`, `folder`, and (optional) a configured agreement marker.
-Fields the agent must **never read or persist**: name, email, phones, `date_of_birth`,
-`ssn_hidden`, address. Contact is used in-flight by Hand only; never written to Memory.
+Confirmed live shape: `client_info{client_id, first_name, last_name, email, phone, status}`,
+`credit_scores{equifax, experian, transunion, last_updated_at}`, `monitoring_details{…}`,
+`report_summary{total_negative_items, …}`.
+Fields the agent **uses**: `client_id`, the three `credit_scores`, `last_updated_at` (freshness),
+`status`, and (optional) a configured agreement marker. `folder`/`state` aren't in the payload
+(defaults apply). Fields the agent must **never read or persist**: name, email, phone (in-flight
+only, for Hand) — and NEVER `report_summary` / `monitoring_details` (credit-report line items, FCRA).
 
 ## 4. Decision logic (Brain)
 - **Decision score** = `mid_score = median(equifax, experian, transunion)`.

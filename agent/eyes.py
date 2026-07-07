@@ -110,45 +110,54 @@ class CSVScoreSource(ScoreSource):
 class DisputeFoxPayloadSource(ScoreSource):
     """Primary path: one DisputeFox 'New Report Imported' webhook payload -> one client.
 
-    The payload nests bureau scores under "credit_scores" (see CLAUDE.md §3); we
-    flatten just those three plus the FCRA-safe top-level fields and ignore the
-    rest (SSN, DOB, address, etc. are never read or stored).
+    Confirmed real shape (from Zapier "Try It"):
+        { "client_info":   {client_id, first_name, last_name, email, phone, status},
+          "credit_scores": {equifax, experian, transunion, last_updated_at},
+          "monitoring_details": {...},                          # ignored
+          "report_summary": {total_negative_items, ...} }       # line items -- IGNORED (FCRA)
 
-    TODO(verify-live): field mapping below is against the spec doc, not the live
-    'New Report Imported' trigger. Run Zapier's "Try It" and confirm: (1) it delivers
-    all THREE bureau scores (its description says "credit score", singular) and their
-    real field names, and (2) the report line items it carries ("negative and deleted
-    items") stay dropped here — FCRA: score + contact + consent only.
+    We read ONLY: client_id + name + email/phone + the three bureau scores + status +
+    last_updated_at (freshness). report_summary / monitoring_details (credit-report line
+    items) are never read or stored. Field lookup is tolerant: values may be nested (raw
+    payload) OR flat at the top level (a Zapier "Webhooks -> POST" with mapped fields),
+    and scores may arrive as strings.
     """
     def __init__(self, payload: dict):
         self.payload = payload or {}
 
     def fetch(self):
         p = self.payload
+        ci = p.get("client_info", {}) or {}
         scores = p.get("credit_scores", {}) or {}
 
+        def field(*keys):
+            # First non-empty value for any of `keys`, looked up in client_info then top level.
+            for k in keys:
+                for src in (ci, p):
+                    v = src.get(k)
+                    if v not in (None, ""):
+                        return v
+            return ""
+
         def bureau(k):
-            # Accept scores nested under "credit_scores" OR flat at the top level, so a
-            # plain Zapier "Webhooks -> POST" (which sends flat key/value data) works
-            # without a hand-written nested JSON body.
-            v = scores.get(k)
+            v = scores.get(k)               # nested under credit_scores, else flat top level
             return p.get(k) if v is None else v
 
         flat = {
-            "client_id": p.get("client_id", ""),
-            "name": " ".join(x for x in (p.get("first_name"), p.get("last_name")) if x),
-            "email": p.get("email", ""),
-            "phone": p.get("phone_cell") or p.get("phone_home", ""),
+            "client_id": field("client_id"),
+            "name": " ".join(x for x in (field("first_name"), field("last_name")) if x),
+            "email": field("email"),
+            "phone": field("phone", "phone_cell", "phone_home"),
             "equifax": bureau("equifax"),
             "experian": bureau("experian"),
             "transunion": bureau("transunion"),
-            "status": p.get("status", ""),
-            "folder": p.get("folder", ""),
-            "updated_at": p.get("updated_at", ""),
-            "current_state": p.get("current_state", ""),
+            "status": field("status"),
+            "folder": field("folder"),
+            "updated_at": str(scores.get("last_updated_at") or field("updated_at", "last_updated_at")),
+            "current_state": field("current_state", "state"),
         }
         if config.AGREEMENT_MARKER_FIELD:
-            flat[config.AGREEMENT_MARKER_FIELD] = p.get(config.AGREEMENT_MARKER_FIELD, "")
+            flat[config.AGREEMENT_MARKER_FIELD] = field(config.AGREEMENT_MARKER_FIELD)
         return [_row_to_client(flat)]
 
 

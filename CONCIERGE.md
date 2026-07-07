@@ -50,20 +50,23 @@ In the provider's Zapier account:
 1. **Action app:** Webhooks by Zapier → **Event: POST**.
 2. **URL:** the provider's `webhook_url` from Step 1.
 3. **Payload type:** Json.
-4. **Data** — add these keys and map each value to the matching DisputeFox trigger field:
+4. **Data** — add these keys and map each to the DisputeFox trigger field (confirmed field
+   locations from a live "New Report Imported" sample):
 
-   | Rood Cab key | DisputeFox field (map from the trigger sample) |
+   | Rood Cab key | DisputeFox trigger field |
    |---|---|
-   | `client_id` | the client's id |
-   | `first_name`, `last_name` | client name |
-   | `email` | client email |
-   | `equifax`, `experian`, `transunion` | the three bureau scores |
-   | `status` | client status (e.g. "Active Client") |
-   | `folder` | client folder / stage |
-   | `current_state` | client state (for offer eligibility; optional) |
-   | `updated_at` | the report import timestamp |
+   | `client_id` | Client Info → Client Id |
+   | `first_name`, `last_name` | Client Info → First/Last Name |
+   | `email` | Client Info → Email |
+   | `equifax`, `experian`, `transunion` | Credit Scores → Equifax / Experian / Transunion |
+   | `status` | Client Info → Status |
+   | `updated_at` | Credit Scores → **Last Updated At** |
 
-   *(Scores can be flat like this — no nested JSON needed. They can arrive as text; Rood Cab coerces them.)*
+   Notes: map scores as flat keys like this — no nested JSON needed; text values are coerced.
+   DisputeFox has no `folder` or `state` field (leave them out; defaults apply). **Do NOT** map
+   `report_summary` fields (negative/deleted items) — those are credit-report line items Rood Cab
+   must not receive (FCRA). *(Alternatively, use Webhooks "Custom Request" and pass the raw payload
+   through — the webhook also parses DisputeFox's nested `client_info` / `credit_scores` shape.)*
 5. **Headers:** add one — `X-RoodCab-Secret` = the provider's `secret` from Step 1.
 6. **Test action.** A good result is HTTP **200** with `{"outcome":"no_action"}` — the first event is
    a **baseline** (records the score, doesn't fire). That's correct.
@@ -79,11 +82,9 @@ In the provider's Zapier account:
 
 ## Gotchas (read these)
 - **Webhooks by Zapier needs a paid Zapier plan.** Confirm the account has Premium apps before you start.
-- **Payload field names are provisional.** Map to whatever the real "New Report Imported" trigger
-  actually outputs. **Open question:** it may return **one blended score** rather than three bureaus
-  (its description says "credit score", singular). If so, tell the Rood Cab team — the parser
-  (`agent/eyes.py`, `TODO(verify-live)`) is adjusted in minutes. It already accepts the three scores
-  either flat (`equifax`) or nested (`credit_scores.equifax`).
+- **Payload shape confirmed.** The live trigger sends all three bureau scores under `credit_scores`
+  plus `client_info` and a `report_summary`. The parser handles this exact shape (and the flat
+  Zapier-mapped form); `report_summary` line items are dropped (FCRA).
 - **Re-testing the same sample = `no_action`.** The freshness gate rejects an `updated_at` it has
   already seen, and the idempotency gate blocks a second referral for the same band. A real *new*
   import with a higher score is what triggers a send.
