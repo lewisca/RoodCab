@@ -154,12 +154,11 @@
     });
   }
 
-  // connection succeeded -> go to offers setup (the monetization step)
+  // setup requested -> go to offers setup (the monetization step)
   function showConnected(conn) {
     storeConnection(conn);
     $("connect-primary").hidden = true;
     $("connect-working").hidden = true;
-    $("manual").hidden = true;
     renderOffers();
     $("offers-step").hidden = false;
   }
@@ -208,86 +207,20 @@
     }
   });
 
-  // --- PRIMARY: Connect with Zapier (SDK connect-link) ---
-  var connectBtn = $("connect-zapier");
+  // --- DisputeFox concierge connect (pilot) ---
+  // Records the provider's setup request; our team then connects their DisputeFox
+  // (via their DisputeFox API key). Real mode: POST to your API / CRM / notify email.
+  var connectBtn = $("connect-disputefox");
   if (connectBtn) connectBtn.addEventListener("click", function () {
     $("connect-primary").hidden = true;
     $("connect-working").hidden = false;
-
-    function finish() { showConnected({ method: "zapier-sdk-connect-link", app: "DisputeFox", company: pendingCompany }); }
-
-    if (CONNECT_LINK_ENDPOINT) {
-      fetch(CONNECT_LINK_ENDPOINT, {
-        method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ provider_id: providerId, api_token: apiToken, app: "disputefox" })
-      })
-        .then(function (r) { return r.json(); })
-        .then(function (j) {
-          var w = window.open(j.connect_url, "zapier-connect", "width=520,height=720");
-          // A real flow resolves on the SDK's redirect/postMessage; here we resolve on close.
-          var t = setInterval(function () { if (!w || w.closed) { clearInterval(t); finish(); } }, 800);
-        })
-        .catch(function () {
-          $("connect-working").hidden = true; $("connect-primary").hidden = false;
-          alert("Couldn't open the Zapier connect window — try manual setup.");
-        });
-    } else {
-      setTimeout(finish, 1600);   // demo: simulate the hosted auth round-trip
-    }
+    try {
+      var reqs = JSON.parse(localStorage.getItem("roodcab_setup_requests") || "[]");
+      reqs.push({ company: pendingCompany, provider_id: providerId, requested_at: new Date().toISOString() });
+      localStorage.setItem("roodcab_setup_requests", JSON.stringify(reqs));
+    } catch (e) { /* ignore */ }
+    setTimeout(function () {
+      showConnected({ method: "disputefox-concierge", company: pendingCompany });
+    }, 1200);
   });
-
-  // --- toggle manual fallback (generate webhook creds lazily) ---
-  var showManual = $("show-manual"), hideManual = $("hide-manual");
-  if (showManual) showManual.addEventListener("click", function () {
-    if (!$("hookUrl").value) {
-      $("hookUrl").value = WEBHOOK_HOST + "/" + slugify(pendingCompany) + "-" + randHex(4);
-      $("hookSecret").value = "rc_sk_" + randHex(18);
-    }
-    $("connect-primary").hidden = true;
-    $("manual").hidden = false;
-  });
-  if (hideManual) hideManual.addEventListener("click", function () {
-    $("manual").hidden = true;
-    $("connect-primary").hidden = false;
-  });
-
-  // manual step 1 -> step 2
-  var step1Next = $("step1-next");
-  if (step1Next) step1Next.addEventListener("click", function () {
-    $("ostep-1").hidden = true;
-    $("ostep-2").hidden = false;
-    setDots(2);
-  });
-
-  // copy buttons
-  document.addEventListener("click", function (e) {
-    var b = e.target.closest("[data-copy]");
-    if (!b) return;
-    var input = $(b.getAttribute("data-copy"));
-    input.select();
-    var ok = false;
-    if (navigator.clipboard) { navigator.clipboard.writeText(input.value); ok = true; }
-    else { try { ok = document.execCommand("copy"); } catch (e2) {} }
-    if (ok) {
-      var prev = b.textContent; b.textContent = "Copied ✓"; b.classList.add("copied");
-      setTimeout(function () { b.textContent = prev; b.classList.remove("copied"); }, 1600);
-    }
-  });
-
-  // manual step 2 -> done
-  var zapForm = $("zap-form");
-  if (zapForm) zapForm.addEventListener("submit", function (ev) {
-    ev.preventDefault();
-    if (!zapForm.checkValidity()) { zapForm.reportValidity(); return; }
-    setDots("done");
-    showConnected({ method: "manual-webhook", webhook: $("hookUrl").value, zapier_email: $("zapEmail").value.trim() });
-  });
-
-  function setDots(step) {
-    var d1 = document.querySelector('.dot[data-dot="1"]');
-    var d2 = document.querySelector('.dot[data-dot="2"]');
-    if (!d1 || !d2) return;
-    if (step === 2) { d1.classList.remove("active"); d1.classList.add("done"); d2.classList.add("active"); }
-    if (step === "done") { d2.classList.remove("active"); d2.classList.add("done"); }
-  }
 })();

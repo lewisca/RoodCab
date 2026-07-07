@@ -258,87 +258,31 @@
     <div class="onboard" id="onboard" hidden>
       <div class="onboard-head">
         <span class="verified">✓ Verified</span>
-        <h3>Connect your data to go live</h3>
-        <p>Authorize your CRM through Zapier and Rood Cab starts listening for New Report Imported
-        events — one click, no Zap to build, no secrets to copy.</p>
+        <h3>Connect your DisputeFox</h3>
+        <p>For the pilot, our team sets this up with you — a short guided call. We connect your
+        DisputeFox to Rood Cab through Zapier (DisputeFox's integration) so it can watch your
+        clients' scores; you don't build anything.</p>
       </div>
 
-      <!-- PRIMARY: Zapier SDK connect-link -->
+      <!-- DisputeFox concierge connect (pilot) -->
       <div id="connect-primary">
         <div class="connect-card">
-          <span class="pill-rec">Recommended</span>
-          <div class="connect-flow"><span>DisputeFox</span><i>→</i><b>Zapier</b><i>→</i><span>Rood&nbsp;Cab</span></div>
-          <button class="btn btn-lg btn-block" id="connect-zapier" type="button">Connect with Zapier</button>
+          <span class="pill-rec">Pilot setup</span>
+          <div class="connect-flow"><span>Your&nbsp;DisputeFox</span><i>→</i><b>Rood&nbsp;Cab</b></div>
+          <button class="btn btn-lg btn-block" id="connect-disputefox" type="button">Request DisputeFox setup</button>
           <ul class="connect-points">
-            <li>Authorize DisputeFox once in a Zapier-hosted window.</li>
-            <li>We subscribe to the <b>“New Report Imported”</b> event for you.</li>
-            <li>Zapier manages tokens, refresh &amp; retries. Nothing to paste.</li>
+            <li>A 10-minute guided setup with our team — nothing to build.</li>
+            <li>We connect your DisputeFox via Zapier's <b>“New Report Imported”</b> trigger.</li>
+            <li>Starts in <b>dry-run</b> — watch what it would send before anything goes live.</li>
           </ul>
         </div>
-        <button class="linkish" id="show-manual" type="button">Not on Zapier, or prefer manual webhook setup?</button>
+        <p style="text-align:center;color:var(--muted-2);font-size:.8rem;margin-top:12px;">You can turn the connection off anytime.</p>
       </div>
 
-      <!-- connecting state -->
+      <!-- requesting state -->
       <div class="connect-working" id="connect-working" hidden>
         <span class="spinner" aria-hidden="true"></span>
-        <p>Opening Zapier… authorize DisputeFox in the popup, then come back here.</p>
-      </div>
-
-      <!-- FALLBACK: manual webhook (the original two steps) -->
-      <div class="manual" id="manual" hidden>
-        <div class="manual-head">
-          <h4>Manual webhook setup</h4>
-          <button class="linkish" id="hide-manual" type="button">← One-click connect</button>
-        </div>
-        <ol class="stepper" aria-hidden="true">
-          <li class="dot active" data-dot="1"><span>1</span><small>Zapier trigger</small></li>
-          <li class="dot" data-dot="2"><span>2</span><small>Connect Rood Cab</small></li>
-        </ol>
-
-        <!-- STEP 1 -->
-        <div class="ostep" id="ostep-1">
-          <h5>Step 1 · Connect DisputeFox / your CRM to Zapier</h5>
-          <ol class="ostep-list">
-            <li>In Zapier, click <b>Create&nbsp;→&nbsp;Zap</b>.</li>
-            <li>For the <b>Trigger app</b>, choose <b>DisputeFox</b> (or your CRM).</li>
-            <li>Set the trigger event to <b>“New Report Imported”</b>.</li>
-            <li>Connect your DisputeFox account, then <b>Test trigger</b> so Zapier pulls a sample client.</li>
-          </ol>
-          <button class="btn btn-block" id="step1-next" type="button">I've set up the New Report Imported trigger →</button>
-        </div>
-
-        <!-- STEP 2 -->
-        <div class="ostep" id="ostep-2" hidden>
-          <h5>Step 2 · Connect Zapier to Rood Cab</h5>
-          <p class="ostep-intro">In that same Zap, add a <b>“Webhooks by Zapier → POST”</b> action and paste in your unique endpoint and secret:</p>
-
-          <div class="cred">
-            <span class="cred-label">Your Rood Cab webhook URL</span>
-            <div class="copyrow">
-              <input id="hookUrl" readonly />
-              <button class="btn btn-ghost btn-sm" type="button" data-copy="hookUrl">Copy</button>
-            </div>
-          </div>
-          <div class="cred">
-            <span class="cred-label">Signing secret · header <code>X-RoodCab-Secret</code></span>
-            <div class="copyrow">
-              <input id="hookSecret" readonly />
-              <button class="btn btn-ghost btn-sm" type="button" data-copy="hookSecret">Copy</button>
-            </div>
-          </div>
-
-          <form id="zap-form" class="zap-form" novalidate>
-            <div class="field">
-              <label for="zapEmail">Zapier account email</label>
-              <input id="zapEmail" name="zapEmail" type="email" autocomplete="email" required />
-            </div>
-            <label class="check">
-              <input id="zapConfirm" type="checkbox" required />
-              <span>I've added the POST action with this URL + secret and turned the Zap on.</span>
-            </label>
-            <button class="btn btn-lg btn-block" type="submit">Complete connection</button>
-          </form>
-        </div>
+        <p>Sending your setup request…</p>
       </div>
 
       <!-- STEP: lending offers (the monetization setup) -->
@@ -349,16 +293,16 @@
         house link and still attribute the payout to you via <code>subid</code>, and you can apply
         for your own anytime. The brain surfaces your <b>highest-priority</b> eligible offer per crossing.</p>
         <div id="offers-list"></div>
-        <button class="btn btn-lg btn-block" id="offers-save" type="button">Save offers &amp; go live</button>
+        <button class="btn btn-lg btn-block" id="offers-save" type="button">Save offers &amp; finish</button>
       </div>
 
       <!-- DONE (shared) -->
       <div class="ostep onboard-done" id="ostep-done" hidden>
         <div class="done-check" aria-hidden="true">✓</div>
-        <h4>You're live.</h4>
-        <p>Rood Cab is now listening for <b>New Report Imported</b> events and will surface your matched
-        offers on each upward crossing — in <b>dry-run</b> first, so you can watch exactly what it
-        would send before anything goes live. <span id="offers-count-note"></span></p>
+        <h4>You're all set — we'll take it from here.</h4>
+        <p>We've got your offers. Our team will reach out to connect your DisputeFox, then Rood Cab
+        surfaces your matched offers on each upward crossing — in <b>dry-run</b> first, so you can watch
+        exactly what it would send before anything goes live. <span id="offers-count-note"></span></p>
       </div>
     </div>
     </div>
