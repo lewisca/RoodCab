@@ -149,6 +149,22 @@ def test_disputefox_payload_maps_safe_fields_only():
     print("ok test_disputefox_payload_maps_safe_fields_only")
 
 
+def test_disputefox_payload_accepts_flat_bureau_scores():
+    # A plain Zapier "Webhooks -> POST" sends flat key/value data (scores at top level,
+    # often as strings) rather than nested under credit_scores. Both must work.
+    payload = {
+        "client_id": "999", "first_name": "Flat", "last_name": "Zap",
+        "email": "flat@example.com",
+        "equifax": "638", "experian": "640", "transunion": "642",   # flat + stringified
+        "status": "Active Client", "folder": "In Progress",
+        "updated_at": "2026-06-16T20:30:00Z",
+    }
+    (c,) = DisputeFoxPayloadSource(payload).fetch()
+    assert (c.equifax, c.experian, c.transunion) == (638, 640, 642)   # coerced to int
+    assert c.scores_in_range() is True
+    print("ok test_disputefox_payload_accepts_flat_bureau_scores")
+
+
 # --- CSV source -----------------------------------------------------------
 
 def test_csv_source_parses_three_bureaus(tmp_path=None):
@@ -197,6 +213,7 @@ if __name__ == "__main__":
     test_invalid_bureau_yields_unsane_row()
     test_401_raises_clear_auth_error()
     test_disputefox_payload_maps_safe_fields_only()
+    test_disputefox_payload_accepts_flat_bureau_scores()
     test_csv_source_parses_three_bureaus()
     test_factory_defaults_to_csv()
     test_factory_api_requires_credentials()

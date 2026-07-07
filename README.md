@@ -113,7 +113,8 @@ their own memory DB (`data/state/<id>.db`) and offers (`data/offers/<id>.json`),
   came from (partner / band / client) + totals, so payouts reconcile.
 
 Host it on a public URL (required so Zapier can reach the webhook) with the one-click Render
-blueprint (`render.yaml`) — see [DEPLOY.md](DEPLOY.md).
+blueprint (`render.yaml`) — see [DEPLOY.md](DEPLOY.md). To connect a pilot provider's DisputeFox
+(the concierge Zap: New Report Imported → Webhooks POST), see [CONCIERGE.md](CONCIERGE.md).
 
 The static site talks to this API when you set `API_BASE` in `site/app.js` (default "" = demo mode).
 The one-click Zapier connect uses the **Node** `connect-server/` (scaffold — needs `npm install` +

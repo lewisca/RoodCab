@@ -126,14 +126,22 @@ class DisputeFoxPayloadSource(ScoreSource):
     def fetch(self):
         p = self.payload
         scores = p.get("credit_scores", {}) or {}
+
+        def bureau(k):
+            # Accept scores nested under "credit_scores" OR flat at the top level, so a
+            # plain Zapier "Webhooks -> POST" (which sends flat key/value data) works
+            # without a hand-written nested JSON body.
+            v = scores.get(k)
+            return p.get(k) if v is None else v
+
         flat = {
             "client_id": p.get("client_id", ""),
             "name": " ".join(x for x in (p.get("first_name"), p.get("last_name")) if x),
             "email": p.get("email", ""),
             "phone": p.get("phone_cell") or p.get("phone_home", ""),
-            "equifax": scores.get("equifax"),
-            "experian": scores.get("experian"),
-            "transunion": scores.get("transunion"),
+            "equifax": bureau("equifax"),
+            "experian": bureau("experian"),
+            "transunion": bureau("transunion"),
             "status": p.get("status", ""),
             "folder": p.get("folder", ""),
             "updated_at": p.get("updated_at", ""),
