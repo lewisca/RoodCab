@@ -1,0 +1,26 @@
+services:
+  - type: web
+    name: roodcab-api
+    runtime: python
+    plan: starter            # paid (~$7/mo): supports a persistent disk and does NOT spin down
+    buildCommand: pip install -r requirements.txt
+    startCommand: python server.py
+    healthCheckPath: /healthz
+    autoDeploy: true
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.12.7"
+      - key: DATA_DIR         # all provider/offer/state/conversion data lives on the disk below
+        value: /var/data
+      - key: DRY_RUN          # keep true until email is configured; even a real webhook sends nothing
+        value: "true"
+      - key: PUBLIC_BASE_URL  # set to your https://<service>.onrender.com after the first deploy
+        sync: false
+      - key: UNSUBSCRIBE_SECRET
+        generateValue: true   # Render generates a strong random value
+      - key: CONVERSIONS_SECRET
+        generateValue: true
+    disk:
+      name: roodcab-data
+      mountPath: /var/data    # must match DATA_DIR — persists across deploys/restarts
+      sizeGB: 1
