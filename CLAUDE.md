@@ -9,8 +9,14 @@ before changing code. When in doubt, quarantine — do not send.
 Watch each client's three bureau scores. When a client **crosses upward** into a
 higher lending band, send **one** matched lending-product referral for that band —
 but only after the Verifier confirms the crossing is real, fresh, non-duplicate,
-eligible, and compliant. Every event ends in exactly one of three states:
-**sent**, **no_action**, or **quarantine**, and is written to Memory.
+eligible, and compliant. Every event ends in one of: **sent**, **no_action**,
+**held** (throttled by the safety leash), or **quarantine** — and is written to Memory.
+
+**Safety leash (guardrails on autonomous sending):** the Verifier (`agent/verifier.py`,
+gates 1–6) is the primary leash. Reinforced by: `DRY_RUN` (nothing sends until off + a real
+sender), pre-send opt-out suppression, a `UNIQUE` idempotency key, and — before any live send —
+`REQUIRE_APPROVAL` (hold all sends for review) + `MAX_SENDS_PER_DAY` (per-provider circuit
+breaker). Held/quarantined events raise an ops alert (`agent/alerts.py`). Arm these before `DRY_RUN=false`.
 
 ## 2. Architecture — Eyes / Brain / Verifier / Hand / Memory
 ```

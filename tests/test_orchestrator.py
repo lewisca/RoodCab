@@ -4,6 +4,7 @@
 """
 import os, sys, tempfile
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+import config
 from agent.eyes import ClientScore
 from agent.memory import Memory
 from agent.verifier import Verifier
@@ -27,8 +28,9 @@ class FakeSender:
         return True
 
 
-def mk(eq, ex, tu, status="Active Client", updated="2026-06-16T20:30:00Z"):
-    return ClientScore("C1", "Maria Lopez", "m@x.com", "+10000000000",
+def mk(eq, ex, tu, status="Active Client", updated="2026-06-16T20:30:00Z",
+       cid="C1", email="m@x.com"):
+    return ClientScore(cid, "Maria Lopez", email, "+10000000000",
                        eq, ex, tu, status, "In Progress", updated)
 
 
@@ -102,6 +104,43 @@ def test_suppressed_recipient_is_not_emailed():
     print("ok test_suppressed_recipient_is_not_emailed")
 
 
+def test_approval_hold_holds_send():
+    path = _fresh_db()
+    saved = config.REQUIRE_APPROVAL
+    try:
+        config.REQUIRE_APPROVAL = True
+        m, s, v = Memory(path), FakeSender(), Verifier()
+        process_event(mk(598, 600, 602, updated="2026-05-01T00:00:00Z"), v, s, m, OFFERS)  # baseline
+        out = process_event(mk(638, 640, 642, updated="2026-06-16T20:30:00Z"), v, s, m, OFFERS)
+        assert out == "held"
+        assert s.sent == []                          # nothing emailed
+        assert m.get("C1")["last_mid_score"] == 600  # crossing preserved (not advanced)
+    finally:
+        config.REQUIRE_APPROVAL = saved
+        os.unlink(path)
+    print("ok test_approval_hold_holds_send")
+
+
+def test_daily_cap_holds_send():
+    path = _fresh_db()
+    saved = config.MAX_SENDS_PER_DAY
+    try:
+        config.MAX_SENDS_PER_DAY = 1
+        m, s, v = Memory(path), FakeSender(), Verifier()
+        # client A: baseline then crossing -> the day's one allowed send
+        process_event(mk(598, 600, 602, updated="2026-05-01T00:00:00Z", cid="A", email="a@x.com"), v, s, m, OFFERS)
+        outA = process_event(mk(638, 640, 642, updated="2026-06-16T20:30:00Z", cid="A", email="a@x.com"), v, s, m, OFFERS)
+        assert outA == "sent" and len(s.sent) == 1
+        # client B: crossing -> HELD, cap already reached
+        process_event(mk(598, 600, 602, updated="2026-05-01T00:00:00Z", cid="B", email="b@x.com"), v, s, m, OFFERS)
+        outB = process_event(mk(638, 640, 642, updated="2026-06-16T20:30:00Z", cid="B", email="b@x.com"), v, s, m, OFFERS)
+        assert outB == "held" and len(s.sent) == 1   # B not emailed
+    finally:
+        config.MAX_SENDS_PER_DAY = saved
+        os.unlink(path)
+    print("ok test_daily_cap_holds_send")
+
+
 def test_quarantine_preserves_last_mid():
     path = _fresh_db()
     try:
@@ -135,6 +174,8 @@ if __name__ == "__main__":
     test_full_lifecycle()
     test_crossing_with_no_offer_is_no_action()
     test_suppressed_recipient_is_not_emailed()
+    test_approval_hold_holds_send()
+    test_daily_cap_holds_send()
     test_quarantine_preserves_last_mid()
     test_invalid_scores_quarantine()
     print("all tests passed")

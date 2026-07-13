@@ -94,6 +94,16 @@ UNSUBSCRIBE_SECRET = os.getenv("UNSUBSCRIBE_SECRET", "dev-unsubscribe-secret-cha
 # secret authorizes the postback. CHANGE in production; real setups sign per-partner.
 CONVERSIONS_SECRET = os.getenv("CONVERSIONS_SECRET", "dev-postback-secret-change-me")
 
+# --- safety leash (guardrails on autonomous sending) -------------------------
+# REQUIRE_APPROVAL: when true, a would-be send is HELD (not sent) for human review.
+# Flip off once you trust the pilot. MAX_SENDS_PER_DAY: per-provider circuit breaker
+# (0 = unlimited) so a bug or surge can't blast out mass emails. Both produce the
+# "held" outcome, which preserves the crossing (it re-fires on the next import).
+REQUIRE_APPROVAL = os.getenv("REQUIRE_APPROVAL", "false").lower() == "true"
+MAX_SENDS_PER_DAY = int(os.getenv("MAX_SENDS_PER_DAY", "0"))     # 0 = unlimited
+# Optional ops webhook: quarantined + held events POST here (no PII). Also always logged.
+OPS_ALERT_URL = os.getenv("OPS_ALERT_URL", "")
+
 # SMTP relay — works with SendGrid / Amazon SES / Mailgun / Postmark / etc.
 SMTP_HOST = os.getenv("SMTP_HOST", "")
 SMTP_PORT = int(os.getenv("SMTP_PORT", "587"))

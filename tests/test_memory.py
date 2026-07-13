@@ -63,6 +63,20 @@ def test_referral_idempotency_key_is_unique():
     print("ok test_referral_idempotency_key_is_unique")
 
 
+def test_sends_today_and_held_log():
+    path = _fresh_db()
+    try:
+        m = Memory(path)
+        assert m.sends_today() == 0
+        m.record_referral("C1", "B2", "C1:B2", subid="C1-B2-x")
+        assert m.sends_today() == 1                    # counts today's sends (the daily cap)
+        m.record_held("C2", "B3", offer_id="o", partner="P", subid="s", reason="approval required")
+        assert m.sends_today() == 1                    # a held send is NOT a send
+    finally:
+        os.unlink(path)
+    print("ok test_sends_today_and_held_log")
+
+
 def test_quarantine_logged():
     path = _fresh_db()
     try:
@@ -119,6 +133,7 @@ if __name__ == "__main__":
     test_observation_roundtrip()
     test_upsert_preserves_unset_fields()
     test_referral_idempotency_key_is_unique()
+    test_sends_today_and_held_log()
     test_quarantine_logged()
     test_suppression_list()
     test_no_pii_columns_anywhere()

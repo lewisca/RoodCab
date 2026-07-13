@@ -57,6 +57,10 @@ class Memory:
             c.execute("""CREATE TABLE IF NOT EXISTS conversions(
                 subid TEXT, status TEXT, amount REAL, currency TEXT, partner_ref TEXT,
                 ts TEXT, key TEXT PRIMARY KEY)""")
+            # Sends held by the safety leash (approval gate / daily cap). No PII.
+            c.execute("""CREATE TABLE IF NOT EXISTS held_log(
+                client_id TEXT, band TEXT, offer_id TEXT, partner TEXT, subid TEXT,
+                reason TEXT, ts TEXT)""")
 
     def get(self, client_id):
         """Return the client's state dict (incl. referrals_sent list), or None."""
@@ -146,6 +150,20 @@ class Memory:
             c.execute("INSERT OR REPLACE INTO conversions"
                       "(subid,status,amount,currency,partner_ref,ts,key) VALUES(?,?,?,?,?,?,?)",
                       (subid, status, float(amount or 0), currency, partner_ref, _now(), key))
+
+    def sends_today(self):
+        """Count referrals sent today (UTC) — the daily-cap circuit breaker reads this."""
+        today = datetime.datetime.utcnow().date().isoformat()
+        with self._conn() as c:
+            return c.execute("SELECT COUNT(*) FROM referrals_sent WHERE substr(ts,1,10)=?",
+                             (today,)).fetchone()[0]
+
+    def record_held(self, client_id, band, offer_id="", partner="", subid="", reason=""):
+        """Log a send the leash held (approval gate / daily cap). No PII stored."""
+        with self._conn() as c:
+            c.execute("INSERT INTO held_log(client_id,band,offer_id,partner,subid,reason,ts) "
+                      "VALUES(?,?,?,?,?,?,?)",
+                      (client_id, band, offer_id, partner, subid, reason, _now()))
 
     def earnings(self):
         """Conversions joined to the referral they came from (partner/band/client) + totals."""

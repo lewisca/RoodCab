@@ -90,3 +90,7 @@ In the provider's Zapier account:
   import with a higher score is what triggers a send.
 - **`DRY_RUN=true`** means crossings are logged but not emailed. Flip to `false` only after email is
   configured and you've watched a few dry-run events (see [DEPLOY.md](DEPLOY.md)).
+- **Arm the safety leash before going live:** set `REQUIRE_APPROVAL=true` (every send is *held* for
+  your review) and/or `MAX_SENDS_PER_DAY=N` (per-provider circuit breaker) so a bug or surge can't
+  blast mass emails. Held + quarantined events log an `[ALERT:*]` line (and POST to `OPS_ALERT_URL`
+  if set). `run.py` warns at startup if you go live with no leash set.

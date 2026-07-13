@@ -6,7 +6,7 @@
 To go live: set DRY_RUN=false, swap ConsoleSender for a real Sender below, and
 point Eyes at MonitoringAPIScoreSource (SCORE_SOURCE=api) or the webhook path. See README.
 """
-from config import DRY_RUN, DB_PATH, OFFERS_PATH
+from config import DRY_RUN, DB_PATH, OFFERS_PATH, MAX_SENDS_PER_DAY, REQUIRE_APPROVAL
 from agent.eyes import build_score_source
 from agent.hand import build_sender
 from agent.memory import Memory
@@ -23,6 +23,8 @@ def main():
     offers = load_offers(OFFERS_PATH)
     if not DRY_RUN:
         print("LIVE: DRY_RUN=false — real emails will be sent to clients' addresses.")
+        if not REQUIRE_APPROVAL and not MAX_SENDS_PER_DAY:
+            print("  [!] no send leash set — consider REQUIRE_APPROVAL=true or MAX_SENDS_PER_DAY=N.")
     print(f"Running score-router-agent (DRY_RUN={DRY_RUN}, sender={type(sender).__name__}, "
           f"offers={len(offers)}) ...")
     run(source, sender, memory, verifier, offers)
